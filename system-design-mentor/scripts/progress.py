@@ -256,14 +256,15 @@ def cmd_init(args):
 def pace(st):
     """Measured pace: topics finished and hours logged per elapsed week."""
     start = dt.date.fromisoformat(st["profile"]["start"])
-    elapsed_w = max(1.0, (today() - start).days / 7)
+    raw_w = (today() - start).days / 7      # real elapsed weeks (pace is only meaningful after 1)
+    elapsed_w = max(1.0, raw_w)
     done = [t for t in st["topics"].values() if t["status"] == "done" and not t.get("known")]
     hours = sum(e["minutes"] for e in st["log"]) / 60
     left = sum(1 for t in st["topics"].values() if t["status"] in ("todo", "learning"))
     topics_pw = len(done) / elapsed_w
     weeks_left = st["profile"]["weeks"] - week_of(st) + 1
     projected = (left / topics_pw) if topics_pw else None
-    return {"elapsed_weeks": round(elapsed_w, 1), "topics_per_week": round(topics_pw, 1),
+    return {"elapsed_weeks": round(raw_w, 1), "topics_per_week": round(topics_pw, 1),
             "hours_per_week": round(hours / elapsed_w, 1), "topics_left": left,
             "weeks_left": weeks_left,
             "projected_weeks": round(projected, 1) if projected else None}

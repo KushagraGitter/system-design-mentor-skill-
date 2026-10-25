@@ -1,6 +1,6 @@
 schema_version: "1.1"
 name: drawio-ticketmaster-strong
 expected_outcome: |
-  The review reads the draw.io file correctly, recognizes that the design already includes a waiting room, seat holds with TTL in Redis, optimistic concurrency in Postgres, idempotent payments with webhook confirmation, hold expiry, and separate cached search, gives a passing score (75+), and does not claim any of those are missing. It may still raise real follow-ups (e.g. Redis hold vs Postgres consistency, waiting-room fairness, hot event sharding).
+  The review reads the draw.io file correctly, recognizes that the design already includes a waiting room, seat holds with TTL in Redis, optimistic concurrency in Postgres, idempotent payments with webhook confirmation, a PENDING_PAYMENT state with automatic refunds for late confirmations, a reconciler for missing webhooks, live availability via Redis + SSE, and separate cached search, gives a passing score (75+), and does not claim any of those are missing. It may still raise real follow-ups (e.g. Redis hold vs Postgres consistency, waiting-room fairness, hot event sharding).
 context:
   scaffold_script: place-files.sh

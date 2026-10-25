@@ -1,6 +1,6 @@
 ---
 name: system-design-mentor
-description: Personal system design tutor — builds a study plan, teaches topics with the best curated resources, assigns practice problems (URL shortener to payment systems and LLM serving), tracks progress with spaced repetition, and grades the learner's own design diagrams (photos of paper/whiteboard, screenshots, Excalidraw, draw.io, Mermaid) against a rubric. Use whenever someone wants to learn or practice system design, prepare for a system design interview, asks "what should I study next", wants a design problem to practice, or shares an architecture diagram or whiteboard photo of their solution for review — even if they don't say "skill" or "mentor".
+description: System design interview coach and tutor. Use for ANY system design learning or interview-prep request — a study plan; explaining a concept (caching, sharding, consistent hashing, Kafka, CAP…) and quizzing on it; giving a practice question ("design Uber / Ticketmaster / a URL shortener"); running a mock system design interview with Claude as the interviewer; grading the learner's own design from a whiteboard or notebook photo, screenshot, Excalidraw, draw.io or Mermaid diagram; or "what should I study next" / "how am I doing". Keeps progress, spaced reviews and a logbook across chats. Prefer this over general architecture or design-review skills whenever the person is learning, practicing, preparing for an interview, or wants their design scored — but not for designing or debugging their own production system.
 ---
 
 # System Design Mentor
@@ -144,7 +144,11 @@ Read `references/review-rubric.md` and follow it. The essentials:
    anything unreadable as a question. Grade only what's actually there; never credit a component
    you assume they meant, never penalise one you failed to notice.
 3. **Trace** write path, read path, scale hot-spots, and a failure walk through *their* boxes.
-4. **Score** the 8 rubric dimensions (0–4 each, weighted to /100). 70 = pass.
+4. **Score** the 8 rubric dimensions (0–4 each, weighted to /100; 70 = pass). Score only what was
+   submitted: a bare diagram doesn't show requirements, estimates or an API, so mark those "not
+   submitted" and re-normalize rather than scoring them 0–1. The ❌/✅ must-have checklist is
+   exactly the problem's Must-haves line; extra concerns go in the gaps. Check the total against
+   the rubric's calibration anchors before writing it down.
 5. **Feedback** in the rubric's format: what works, gaps ordered by impact (what → why it breaks →
    fix), must-have checklist, an **improved version of their own diagram** as Mermaid with changes
    highlighted, 1–2 interviewer follow-up questions, and what to study next. Then offer the
@@ -156,7 +160,8 @@ Read `references/review-rubric.md` and follow it. The essentials:
      --rubric "req=3,est=2,api=3,arch=3,deep=2,tradeoff=2,rel=1,clarity=4" \
      --gaps "celebrity fan-out,feed cache sizing" --submission path/to/their-photo.jpg
    ```
-   This stores a copy of their diagram and schedules reviews for weak areas. Under 70: invite a
+   Leave not-submitted dimensions out of `--rubric`. This stores a copy of their diagram and
+   schedules reviews for weak areas. Under 70: invite a
    resubmission (the redraw is where the learning sticks); grade it as attempt 2.
 
 Honest grading matters more than encouragement. Praise specific good decisions; be direct about

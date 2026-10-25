@@ -148,7 +148,7 @@ Level: L2
 Topics: contention, transactions, caching, rate-limiting, realtime
 Prompt: Browse events, view seat map, reserve seats for 10 minutes, pay, confirm. Popular events: 10M users hitting at on-sale time for 50K seats. No double booking.
 Must-haves: seat reservation with expiry (DB row lock/OCC or distributed lock with TTL); strong consistency for booking; payment via external provider with idempotency; virtual waiting queue for surges; event search separated (read-heavy, cached).
-Deep dives: hold expiry; waiting room design; payment failure after hold.
+Deep dives: hold expiry; waiting room design; payment failure after hold (charge succeeds after the hold expired); showing live seat availability to millions of viewers.
 Common mistakes: eventual consistency on seat inventory; distributed lock without TTL/fencing; no surge protection.
 Reference: Hello Interview — Ticketmaster; Xu-2 "Hotel reservation system"
 

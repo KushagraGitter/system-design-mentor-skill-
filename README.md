@@ -103,8 +103,11 @@ Run them with Claude Code:
 cd system-design-mentor && claude plugin eval . --scaffold --allow-tools Bash Write Edit
 ```
 
-Latest results are in [`evals/RESULTS.md`](system-design-mentor/evals/RESULTS.md). These are
-synthetic cases; real submissions with human-agreed scores are the next step — contributions welcome.
+Latest run: **96% of checks pass with the skill vs 69% without**, including a strong design that
+correctly passes (82/100) and an illegible label that gets asked about rather than guessed. Details,
+including what testing changed in the rubric, are in [`evals/RESULTS.md`](system-design-mentor/evals/RESULTS.md).
+These are synthetic cases; real submissions with human-agreed scores are the next step —
+contributions welcome.
 
 ## Maintenance
 

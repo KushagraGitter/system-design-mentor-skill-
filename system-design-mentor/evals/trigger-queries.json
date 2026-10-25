@@ -1,0 +1,23 @@
+[
+  {"query": "i have a staff eng loop at stripe in 6 weeks and the system design round scares me. can you make me a study plan? i can do maybe 7-8 hrs a week", "should_trigger": true},
+  {"query": "here's a pic of my whiteboard from practicing 'design uber' last night, how would an interviewer rate this? be brutal", "should_trigger": true},
+  {"query": "can you give me a system design question to practice? something medium, not url shortener again", "should_trigger": true},
+  {"query": "I drew my notification service design in excalidraw (attached notif.excalidraw). does the architecture hold up for 50M pushes a day?", "should_trigger": true},
+  {"query": "what should I study next for system design? last time we did caching and load balancers", "should_trigger": true},
+  {"query": "explain consistent hashing to me like I'm preparing for interviews, then quiz me on it", "should_trigger": true},
+  {"query": "can we do a mock system design interview? 45 mins, you be the interviewer, design ticketmaster", "should_trigger": true},
+  {"query": "I keep failing the design round at mid-level. went 0 for 3 this year. where do I even start learning distributed systems properly", "should_trigger": true},
+  {"query": "here is my draw.io for a RAG-based internal docs assistant, I'm interviewing at an AI startup and want feedback on the design before thursday", "should_trigger": true},
+  {"query": "how am I doing on my system design prep? show me my progress", "should_trigger": true},
+
+  {"query": "our postgres primary is at 90% cpu during peak, read replicas are lagging 30s. what are my options right now? prod issue", "should_trigger": false},
+  {"query": "write a python function that implements a token bucket rate limiter with unit tests", "should_trigger": false},
+  {"query": "convert this mermaid flowchart to a PNG for my slide deck: flowchart LR A-->B-->C", "should_trigger": false},
+  {"query": "Can you review this PR? It adds a Redis cache in front of the user service, diff below", "should_trigger": false},
+  {"query": "write an ADR comparing Kafka vs SQS for our order events pipeline, we're on AWS and the team is 4 people", "should_trigger": false},
+  {"query": "what's the difference between TCP and UDP? quick answer pls", "should_trigger": false},
+  {"query": "help me write my resume bullet for 'designed and launched a sharded payments ledger handling 20K TPS'", "should_trigger": false},
+  {"query": "draw me an architecture diagram of our current setup: nextjs on vercel, supabase, stripe webhooks, resend for email", "should_trigger": false},
+  {"query": "I'm hiring a senior backend engineer, can you draft 3 system design interview questions and a scoring rubric for my interviewers", "should_trigger": false},
+  {"query": "summarize chapter 5 of designing data intensive applications for me", "should_trigger": false}
+]

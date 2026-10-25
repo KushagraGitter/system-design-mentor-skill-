@@ -67,7 +67,39 @@ Weighted total is out of 100.
 | 7 | Reliability & failure handling | 10 | single points of failure ignored | replication/retries mentioned | failure walk handled: redundancy, retries+idempotency, degradation, data safety |
 | 8 | Diagram clarity | 5 | can't follow | readable with effort | labelled boxes, directional arrows, sync/async distinguished, data stores obvious |
 
-Weighted score = Σ (score/4 × weight).
+Weighted score = Σ (score/4 × weight) over the dimensions you scored, divided by the sum of
+those dimensions' weights, × 100.
+
+**Score only what was submitted.** Learners often send just the diagram. Requirements, estimation
+and the API usually live in what they'd *say*, so a bare diagram can't show them, and scoring them
+0–1 punishes the format instead of the design (in testing, this alone dragged a strong Ticketmaster
+design from ~80 to 52). So:
+- If a dimension's material simply isn't in the submission (no requirements written anywhere, no
+  numbers, no endpoints or schema), mark it **"not submitted"**, leave it out of the total, and
+  re-normalize as above. Say so on the score line: `78/100 (design only — requirements and API not submitted)`.
+- Score it normally when they attempted it, even briefly — a one-line requirement list is
+  "submitted" and can score 1.
+- Architecture, deep dives, trade-offs visible in the drawing, reliability and clarity are always scored.
+- Then ask for the missing parts in one line ("Send 3–4 lines of requirements and your API and
+  I'll fold them into the score"), and remind them that in a real interview they'd be expected.
+
+For a **mock interview**, everything said in the conversation counts as submitted — score all eight.
+
+**Must-haves come from the answer key.** The checklist lists exactly the Must-haves line of the
+problem in `problems.md` — nothing added. Anything else you'd raise (a deeper race condition, a
+nice-to-have component) goes under "Gaps that matter" and can lower Deep dives or Reliability, but
+it is never shown as a ❌ must-have. Those ❌ marks are what makes a design fail, so they have to
+mean the same thing for every learner.
+
+**Calibration anchors** (use these to sanity-check your total before writing it down):
+- Every must-have present and wired correctly, choices justified in notes, hard part addressed at a
+  reasonable depth → **75–85** even if you can think of more follow-ups. Follow-ups are normal; an
+  interviewer always has more questions.
+- Core path works, but one must-have is missing or a key choice breaks a requirement → **50–69**.
+- The design doesn't work for the stated requirements (data can't reach the user, limits not
+  enforced, data loss on the main path) → **below 50**.
+- 85+ needs the senior signal: they addressed the hard part *unprompted* with concrete mechanisms
+  and numbers, and named trade-offs.
 
 **Bands**: < 50 *Not yet* · 50–69 *Developing* · 70–84 *Interview-ready (mid-level)* · 85+ *Strong
 (senior signal)*. An assignment is **passed at 70+** — this threshold drives the progress tracker.
@@ -95,9 +127,9 @@ Use this structure. Lead with the score so the learner sees the verdict, keep it
 1. …
 2. …
 
-**Must-have checklist**: ✅ chunking · ✅ presigned upload · ❌ sync notification to other devices · ⚠️ dedup (mentioned, not shown)
+**Must-have checklist** (exactly the problem's Must-haves line): ✅ chunking · ✅ presigned upload · ❌ sync notification to other devices · ⚠️ dedup (mentioned, not shown)
 
-**Rubric**: Req 3/4 · Est 2/4 · API/Data 3/4 · Arch 3/4 · Deep 2/4 · Trade-offs 2/4 · Reliability 1/4 · Clarity 4/4
+**Rubric**: Req 3/4 · Est — (not submitted) · API/Data 3/4 · Arch 3/4 · Deep 2/4 · Trade-offs 2/4 · Reliability 1/4 · Clarity 4/4
 
 **Improved design** (a Mermaid diagram of *their* design with the fixes applied — keep their component names so they can see the delta)
 
@@ -120,7 +152,8 @@ python3 scripts/progress.py grade --problem <id> --score <0-100> \
   --gaps "sync notification,failure handling" --submission <path-to-diagram>
 ```
 
-Topics tied to low-scoring dimensions get scheduled for review automatically. Encourage a
+Leave out any dimension marked "not submitted". Topics tied to low-scoring dimensions get scheduled
+for review automatically. Encourage a
 resubmission for anything under 70 — redrawing after feedback is where most of the learning happens.
 
 ## Validating "explain it" answers (no diagram)
