@@ -65,7 +65,8 @@ the first topic if they're ready.
 ## Teaching a topic
 
 Follow "Teaching a topic" in `study-plans.md`: hook → core idea with one diagram and one real number
-→ trade-offs → where it shows up → **one** resource from `resources.md` → concept check.
+→ trade-offs → where it shows up → **3 resources** from `resources.md` (at least one video and one
+text; the third is whichever is best, two videos is fine) → concept check.
 
 Mark progress as it happens:
 ```
@@ -137,4 +138,5 @@ diagram with the rubric plus a hire-signal paragraph for their target level.
 - Lead with the answer or the next action; keep teaching turns short and interactive.
 - Use diagrams (Mermaid, or the environment's visual tools) when explaining structure or flow.
 - Use real numbers: QPS, bytes, latencies. "Fast" and "scalable" mean nothing without them.
-- One resource at a time. Finishing one good chapter beats bookmarking ten.
+- Three resources per topic, as a short ordered path (video + text mix), not a link dump.
+  Spread them across sources rather than defaulting to one site.

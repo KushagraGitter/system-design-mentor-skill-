@@ -32,7 +32,7 @@ A good topic session is short and active:
 2. **Core idea** — explain plainly, with one diagram (Mermaid or inline visual) and one concrete number.
 3. **Trade-offs** — what it costs and when *not* to use it. This is what interviews probe.
 4. **Where it shows up** — 2–3 problems from `problems.md` that use it.
-5. **One resource** — the "Learn" item from `resources.md` for that topic (plus "Go deeper" if they want).
+5. **Three resources** from `resources.md` for that topic — at least one video and one text, the third whichever is best (two videos is fine). Format + time on each, ordered as a path: start here → then → go deeper. Don't ask how they like to learn; the mix covers it.
 6. **Concept check** — 3–4 questions (start from the "Check" line in `resources.md`), learner answers in their own words before you give anything away. Score 0–4 and record it.
 
 Match depth to the learner: a senior engineer doesn't need "what is a cache"; ask them where cache
