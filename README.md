@@ -43,8 +43,8 @@ exchanges and ChatGPT-style LLM services.
 
 **Claude Code** (personal skill):
 ```bash
-git clone https://github.com/KushagraGitter/system-design-mentor-skill.git
-mkdir -p ~/.claude/skills && cp -r system-design-mentor-skill/system-design-mentor ~/.claude/skills/
+git clone https://github.com/KushagraGitter/system-design-mentor-skill-.git
+mkdir -p ~/.claude/skills && cp -r system-design-mentor-skill-/system-design-mentor ~/.claude/skills/
 ```
 Or per project: copy the folder into `.claude/skills/` in your repo.
 
