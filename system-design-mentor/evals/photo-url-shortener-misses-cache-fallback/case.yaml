@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: photo-url-shortener-misses-cache-fallback
+expected_outcome: |
+  The review transcribes the whiteboard correctly (Client, Load Balancer, App servers x3, Postgres, Redis cache; write arrow to Postgres, read arrow to Redis; notes on base62 counter and ~40 writes/s, ~4K reads/s), flags that a Redis cache miss has no path to Postgres, flags that the counter's location/coordination across 3 app servers is unspecified, notes custom alias uniqueness or expiry is not handled, scores it below the 70 pass mark, gives an improved Mermaid version of the learner's own diagram, and does not credit components that aren't drawn.
+context:
+  scaffold_script: place-files.sh

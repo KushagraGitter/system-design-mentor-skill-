@@ -38,6 +38,29 @@ A good topic session is short and active:
 Match depth to the learner: a senior engineer doesn't need "what is a cache"; ask them where cache
 invalidation went wrong in a system they've built instead.
 
+## Skim checks (for topics they may already know)
+
+Offer a skim check whenever a topic looks familiar to the learner, they say "I know this", or
+they're behind schedule. It replaces the lesson, not the learning:
+
+1. Ask 3 questions that need understanding, not recall — a trade-off, a failure case, and a number. (Use the topic's "Check" line; make at least one question about *when not* to use the thing.)
+2. 3+/4 on the combined answer → mark it done as skimmed: `progress.py topic <id> --status done --quiz <n> --skim`, give the 3 resources as optional reading, move on.
+3. Below 3 → teach it normally, starting from the gap the answers revealed.
+
+Skimmed topics still enter spaced review, so a lucky pass gets caught later.
+
+## Keeping the plan realistic
+
+`progress.py status` prints the measured pace once a week has passed and warns when the remaining
+topics won't fit. When it does (or the learner says they're behind), offer one of these, in a
+sentence each, and let them pick:
+- **More weeks**: `progress.py replan --weeks <n>`
+- **Fewer hours, honestly sized**: `progress.py replan --use-measured` (sizes weeks from logged time)
+- **Trim scope**: skim checks on familiar topics, or `replan --skip-topics <ids>` for depth topics they don't need
+
+`replan` rebuilds only the weeks from now on; finished topics, quiz scores, reviews and graded
+attempts are kept. Passed problems aren't rescheduled; failed ones come back.
+
 ## Assigning a practice problem
 
 Give the learner exactly what an interviewer would — the **Prompt** line from `problems.md`
@@ -57,7 +80,19 @@ the Deep-dives and Trade-offs scores at 2.
 
 ## Mock interview mode
 
-Play the interviewer for 45 minutes of wall-clock-free conversation:
-1. Give only the one-line problem ("Design WhatsApp"). Let them ask clarifying questions; answer like an interviewer (sensible defaults, numbers if asked).
-2. Let them drive. Interject only with interviewer probes: "What's the bottleneck?", "What happens if this box dies?", "Why that database?"
-3. At the end, ask for their final diagram (photo/file) and grade with the rubric, adding a "how this would read to an interviewer" paragraph with a hire/lean-hire/no-hire signal at their target level.
+A mock runs on the real clock — pacing is half of what's being tested, and you have no sense of
+time passing between messages without it.
+
+1. **Start the timer** when you give the problem: `python3 scripts/mock.py start --problem <id> --minutes 45 --level <their level>`. Give only the one-line problem ("Design WhatsApp") and say they have 45 minutes and should send their diagram (photo, screenshot or file) whenever they want feedback on it.
+2. **Every turn, run `mock.py check` first.** It reports elapsed time, the phase they *should* be in, and an interrupt cue when one is due. When they move on ("ok, API next"), record it with `mock.py phase <requirements|entities-api|high-level|deep-dives|wrap-up>`.
+3. **Act like an interviewer.** Answer clarifying questions with sensible defaults and numbers. Otherwise stay quiet and let them drive, except when:
+   - `check` says to interrupt for time — redirect them in one sentence, the way a real interviewer would.
+   - it says to probe, or the design invites one. Probes by phase:
+     - requirements: "What's the read/write ratio?" · "Which of these matters most if we can only have one?"
+     - high-level: "Walk me through a write end to end." · "Where does this data live?"
+     - deep dives: "What's the bottleneck at 10x?" · "This box dies — what happens?" · "Why that database over X?" · the problem's own Deep dives line from `problems.md`.
+   Keep probes to one question. Don't teach during a mock; save corrections for the review.
+4. **End** with `mock.py end` when time is up (or they finish). Ask for the final diagram, then grade it with `review-rubric.md` and include:
+   - the phase-timing table from `mock.py end` and one line on pacing (where they lost time);
+   - a short "how this reads to an interviewer" paragraph with a hire / lean hire / lean no hire / no hire signal at their target level, and the one change that would most move it.
+5. Record the grade with `progress.py grade` and add `--notes "mock"`.

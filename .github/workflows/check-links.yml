@@ -1,0 +1,42 @@
+name: Check resource links
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"   # Mondays 03:17 UTC
+  workflow_dispatch:
+  pull_request:
+    paths: ["system-design-mentor/references/**", "README.md"]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check links
+        id: check
+        run: |
+          set +e
+          python3 system-design-mentor/scripts/check_links.py > report.txt
+          code=$?
+          cat report.txt
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Open or update an issue when links break
+        if: steps.check.outputs.code != '0' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Broken resource links"
+          body=$(printf 'The weekly link check found broken links:\n\n```\n%s\n```\n\nFix or replace them in `system-design-mentor/references/`.' "$(grep -E '^BROKEN' report.txt)")
+          num=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')
+          if [ -n "$num" ]; then gh issue comment "$num" --body "$body"; else gh issue create --title "$title" --body "$body"; fi
+      - name: Fail on PRs with broken links
+        if: steps.check.outputs.code != '0' && github.event_name == 'pull_request'
+        run: exit 1

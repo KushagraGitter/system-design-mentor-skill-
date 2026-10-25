@@ -15,8 +15,9 @@ better teachers). Label each with its format and rough time ("📖 25 min", "�
 them as a path: start here → then this → go deeper. Vary the sources — don't hand every topic to the
 same site. Every topic below has at least 3 entries with at least one "Watch" line.
 
-"Watch" links are YouTube searches scoped to a trusted channel (they never go stale). When you have
-web search, you can resolve one to the specific video and give its direct link instead. Before
+"Watch" lines with a `watch?v=` link are specific videos checked in October 2026. The rest are
+YouTube searches scoped to a trusted channel (they never go stale); with web search available you
+can resolve one to a specific video, confirming the channel name before you share it. Before
 handing a link to a learner, prefer resources from this file; if you need something newer, search
 the web and say so.
 
@@ -25,7 +26,7 @@ the web and say so.
 - [P1 Foundations](#p1-foundations) · [P2 Building blocks](#p2-core-building-blocks) · [P3 Data](#p3-data-storage-and-modeling)
 - [P4 Distributed theory](#p4-distributed-systems-theory) · [P5 Async & streaming](#p5-async-processing-and-streaming)
 - [P6 Patterns](#p6-design-patterns-for-scale) · [P7 Reliability & security](#p7-reliability-observability-and-security)
-- [P8 Interview craft](#p8-interview-craft) · [P9 Modern systems](#p9-modern-systems-ai-llm-and-real-time)
+- [P8 Interview craft](#p8-interview-craft) · [P9 Modern systems](#p9-modern-systems-ai-llm-and-real-time) · [P10 AI systems track](#p10-ai-systems-track)
 - [Practice platforms, mocks, diagram tools](#practice-platforms-mocks-and-diagram-tools)
 
 ---
@@ -90,7 +91,7 @@ the web and say so.
 - Learn: Hello Interview — *Networking Essentials*: https://www.hellointerview.com/learn/system-design/core-concepts/networking-essentials
 - Learn: System Design Primer — DNS, CDN, TCP/UDP, HTTP sections
 - Watch: Hussein Nasser — HTTP/2 vs HTTP/3, TCP vs UDP videos
-- Watch: ByteByteGo — what happens when you type a URL (https://www.youtube.com/results?search_query=ByteByteGo+what+happens+when+you+type+a+URL)
+- Watch: ByteByteGo — *What happens when you type a URL into your browser?* (5 min): https://www.youtube.com/watch?v=AlkDbnbv7dk
 - Check: What happens when you type a URL? When is UDP right? Why do WebSockets need sticky routing or a pub/sub layer?
 
 ### api-design
@@ -120,7 +121,7 @@ the web and say so.
 - Go deeper: Meta paper "Scaling Memcache at Facebook" (NSDI '13); Builders' Library — "Caching challenges and strategies"
 - Text: ByteByteGo *System Design 101* (free visual guides): https://github.com/ByteByteGoHq/system-design-101 — caching section
 - Watch: ByteByteGo — caching strategies (https://www.youtube.com/results?search_query=ByteByteGo+caching+strategies)
-- Watch: Hussein Nasser — cache stampede (https://www.youtube.com/results?search_query=Hussein+Nasser+cache+stampede)
+- Watch: Hello Interview — *Redis Deep Dive*: https://www.youtube.com/watch?v=fmT5nlEkl3U
 - Check: Cache-aside vs write-through vs write-behind? How do you prevent a thundering herd on a hot key expiry? How stale may your cache be, and who decides?
 
 ### cdn-blob
@@ -128,6 +129,7 @@ the web and say so.
 - Go deeper: Xu-2 "S3-like object storage"
 - Text: Karan Pratap Singh *System Design* (free): https://github.com/karanpratapsingh/system-design — 'Content Delivery Network (CDN)' chapter
 - Watch: ByteByteGo — how CDN works (https://www.youtube.com/results?search_query=ByteByteGo+how+CDN+works)
+- Watch: Hello Interview — *Design Dropbox or Google Drive*: https://www.youtube.com/watch?v=_UZ1ngy-kOI
 - Check: Why upload directly to S3 with a presigned URL instead of through your API? How do you resume a 5 GB upload? Push vs pull CDN?
 
 ### proxies-gateway
@@ -150,6 +152,7 @@ the web and say so.
 - Go deeper: Alex DeBrie, *The DynamoDB Book* 💲 (single-table design)
 - Text: DDIA ch. 2 'Data Models and Query Languages'
 - Watch: Hussein Nasser — database normalization denormalization (https://www.youtube.com/results?search_query=Hussein+Nasser+database+normalization+denormalization)
+- Watch: Hello Interview — *Design Bitly* (beginner walkthrough, good data-model example): https://www.youtube.com/watch?v=iUU4O1sWtJA
 - Check: Model followers for Twitter in SQL and in a wide-column store. When is denormalization worth the write cost?
 
 ### indexing
@@ -180,14 +183,15 @@ the web and say so.
 ### consistent-hashing
 - Learn: Hello Interview — *Consistent Hashing*: https://www.hellointerview.com/learn/system-design/core-concepts/consistent-hashing ; Xu-1 ch. 5
 - Go deeper: Amazon Dynamo paper (SOSP 2007): https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf
-- Watch: Gaurav Sen — consistent hashing (https://www.youtube.com/results?search_query=Gaurav+Sen+consistent+hashing)
 - Watch: ByteByteGo — consistent hashing (https://www.youtube.com/results?search_query=ByteByteGo+consistent+hashing)
+- Watch: Gaurav Sen — *What is Consistent Hashing and Where is it used?* (10 min): https://www.youtube.com/watch?v=zaRkONvyGr8
 - Check: Why virtual nodes? How much data moves when a node joins with naive mod-N vs a ring?
 
 ### search-systems
 - Learn: Hello Interview — *Elasticsearch* deep dive: https://www.hellointerview.com/learn/system-design/deep-dives/elasticsearch
 - Practice: Hello Interview — *FB Post Search* breakdown; Xu-1 ch. 13 "Search autocomplete"
-- Watch: ByteByteGo — how search engine works inverted index (https://www.youtube.com/results?search_query=ByteByteGo+how+search+engine+works+inverted+index)
+- Watch: Hello Interview — *Elasticsearch Deep Dive*: https://www.youtube.com/watch?v=PuZvF2EyfBM
+- Watch: Hello Interview — *Design FB Post Search*: https://www.youtube.com/watch?v=l38XL9914fs
 - Check: How does an inverted index answer a two-term query? How do you keep the search index in sync with the primary DB (CDC)?
 
 ## P4 Distributed systems theory
@@ -226,25 +230,29 @@ the web and say so.
 - Go deeper: Builders' Library — "Avoiding insurmountable queue backlogs"
 - Text: Karan Pratap Singh *System Design* (free): https://github.com/karanpratapsingh/system-design — 'Message Queues' and 'Publish-Subscribe' chapters
 - Watch: ByteByteGo — message queue vs pub sub (https://www.youtube.com/results?search_query=ByteByteGo+message+queue+vs+pub+sub)
+- Watch: Hello Interview — *Message Queues in System Design Interviews*: https://www.youtube.com/watch?v=1ISRd0bS714
 - Check: At-most/at-least/exactly-once? Where do poison messages go? How does backpressure reach the producer?
 
 ### streaming
 - Learn: Hello Interview — *Kafka* deep dive: https://www.hellointerview.com/learn/system-design/deep-dives/kafka and *Flink*: https://www.hellointerview.com/learn/system-design/deep-dives/flink
 - Go deeper: DDIA ch. 11 "Stream Processing"; Jay Kreps, "The Log: What every software engineer should know…" (LinkedIn Engineering, 2013)
 - Watch: ByteByteGo — Kafka explained (https://www.youtube.com/results?search_query=ByteByteGo+Kafka+explained)
-- Watch: Hello Interview — Kafka deep dive (https://www.youtube.com/results?search_query=Hello+Interview+Kafka+deep+dive)
+- Watch: Hello Interview — *Kafka System Design Deep Dive*: https://www.youtube.com/watch?v=DU8o-OTeoCc
 - Check: How do partitions give ordering and parallelism at once? What happens on consumer-group rebalance? Windowing for "clicks per ad per minute"?
 
 ### batch-processing
 - Learn: DDIA ch. 10 "Batch Processing"; MapReduce paper (OSDI '04)
 - Text: MapReduce paper (OSDI '04): https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf
 - Watch: ByteByteGo — batch vs stream processing (https://www.youtube.com/results?search_query=ByteByteGo+batch+vs+stream+processing)
+- Watch: Hello Interview — *Top-K (YouTube top videos) breakdown*: https://www.youtube.com/watch?v=y-tA2NW4LNY
+- Watch: Hello Interview — *Design an Ad Click Aggregator*: https://www.youtube.com/watch?v=Zcv_899yqhI
 - Check: Lambda vs kappa architecture — when would you still choose batch?
 
 ### workflows
 - Learn: Hello Interview — *Managing Long Running Tasks*: https://www.hellointerview.com/learn/system-design/patterns/long-running-tasks ; *Temporal* deep dive: https://www.hellointerview.com/learn/system-design/deep-dives/temporal
 - Practice: Hello Interview — *Job Scheduler* breakdown
 - Watch: Hello Interview — job scheduler system design (https://www.youtube.com/results?search_query=Hello+Interview+job+scheduler+system+design)
+- Watch: Hello Interview — *Design a Web Crawler*: https://www.youtube.com/watch?v=krsuaUp__pM
 - Check: How do you guarantee a scheduled job runs once even if a worker dies mid-run? Heartbeats vs visibility timeouts?
 
 ## P6 Design patterns for scale
@@ -254,33 +262,41 @@ the web and say so.
 - Go deeper: Azure patterns — CQRS, Materialized View
 - Text: Karan Pratap Singh *System Design* (free): https://github.com/karanpratapsingh/system-design — 'CQRS' chapter
 - Watch: ByteByteGo — how to scale reads read replicas caching (https://www.youtube.com/results?search_query=ByteByteGo+how+to+scale+reads+read+replicas+caching)
+
 ### scaling-writes
 - Learn: Hello Interview — *Scaling Writes*: https://www.hellointerview.com/learn/system-design/patterns/scaling-writes
 - Text: DDIA ch. 6 'Partitioning'
 - Watch: Hello Interview — scaling writes system design (https://www.youtube.com/results?search_query=Hello+Interview+scaling+writes+system+design)
+
 ### contention
 - Learn: Hello Interview — *Dealing with Contention*: https://www.hellointerview.com/learn/system-design/patterns/dealing-with-contention
 - Practice: Ticketmaster, Online Auction, Flash Sale breakdowns (Hello Interview); Xu-2 "Hotel reservation system"
-- Watch: Hello Interview — Ticketmaster system design (https://www.youtube.com/results?search_query=Hello+Interview+Ticketmaster+system+design)
+- Watch: Hello Interview — *Design Ticketmaster*: https://www.youtube.com/watch?v=fhdPyoO6aXI
+
 ### realtime
 - Learn: Hello Interview — *Real-time Updates*: https://www.hellointerview.com/learn/system-design/patterns/realtime-updates
 - Practice: WhatsApp and FB Live Comments breakdowns; Xu-1 ch. 12 "Chat system"
 - Watch: ByteByteGo — WebSocket vs SSE vs long polling (https://www.youtube.com/results?search_query=ByteByteGo+WebSocket+vs+SSE+vs+long+polling)
+- Watch: Hello Interview — *Design Live Comments*: https://www.youtube.com/watch?v=LjLx0fCd1k8
+- Watch: Hello Interview — *Design WhatsApp*: https://www.youtube.com/watch?v=cr6p0n0N-VA
+
 ### fanout-feeds
 - Learn: Xu-1 ch. 11 "News feed system"; Hello Interview — *FB News Feed* breakdown
 - Go deeper: Twitter/X timeline architecture talks ("Timelines at Scale", QCon 2013) — search the title
-- Watch: Hello Interview — FB news feed system design (https://www.youtube.com/results?search_query=Hello+Interview+FB+news+feed+system+design)
 - Watch: Gaurav Sen — news feed design (https://www.youtube.com/results?search_query=Gaurav+Sen+news+feed+design)
+- Watch: Hello Interview — *Design FB News Feed*: https://www.youtube.com/watch?v=Qj4-GruzyDU
+
 ### rate-limiting
 - Learn: Xu-1 ch. 4; Hello Interview — *Distributed Rate Limiter* breakdown
 - Go deeper: Cloudflare blog — "How we built rate limiting capable of scaling to millions of domains"
 - Watch: ByteByteGo — rate limiting algorithms (https://www.youtube.com/results?search_query=ByteByteGo+rate+limiting+algorithms)
-- Watch: Hello Interview — distributed rate limiter (https://www.youtube.com/results?search_query=Hello+Interview+distributed+rate+limiter)
+- Watch: Hello Interview — *Design a Distributed Rate Limiter*: https://www.youtube.com/watch?v=MIJFyUPG4Z4
+
 ### geo-systems
 - Learn: Xu-2 "Proximity service" and "Nearby friends"; Hello Interview — *Yelp* and *Uber* breakdowns
 - Text: ByteByteGo *System Design 101* (free visual guides): https://github.com/ByteByteGoHq/system-design-101 — geohash / quadtree guides
-- Watch: Hello Interview — Uber system design (https://www.youtube.com/results?search_query=Hello+Interview+Uber+system+design)
 - Watch: ByteByteGo — proximity service geohash quadtree (https://www.youtube.com/results?search_query=ByteByteGo+proximity+service+geohash+quadtree)
+- Watch: Hello Interview — *Design Uber*: https://www.youtube.com/watch?v=lsKU38RKQSo
 - Check for all P6: name the pattern, the bottleneck it removes, and the new failure mode it introduces.
 
 ## P7 Reliability, observability and security
@@ -289,21 +305,25 @@ the web and say so.
 - Learn: Builders' Library — "Timeouts, retries, and backoff with jitter" and "Making retries safe with idempotent APIs"
 - Go deeper: Azure patterns — Circuit Breaker, Bulkhead, Retry; Michael Nygard, *Release It!* 💲
 - Watch: ByteByteGo — circuit breaker retry exponential backoff (https://www.youtube.com/results?search_query=ByteByteGo+circuit+breaker+retry+exponential+backoff)
+
 ### availability-dr
 - Learn: Google SRE book — chapters "Service Level Objectives" and "Embracing Risk": https://sre.google/books/
 - Text: Karan Pratap Singh *System Design* (free): https://github.com/karanpratapsingh/system-design — 'Availability' chapter
 - Watch: ByteByteGo — disaster recovery RPO RTO (https://www.youtube.com/results?search_query=ByteByteGo+disaster+recovery+RPO+RTO)
 - Check: Two 99.9% services in series = ? Active-active vs active-passive multi-region? RPO vs RTO?
+
 ### observability
 - Learn: Google SRE book — "Monitoring Distributed Systems" (the four golden signals); OpenTelemetry docs: https://opentelemetry.io/docs/
 - Practice: Hello Interview — *Metrics Monitoring* breakdown; Xu-2 "Metrics monitoring and alerting system"
 - Watch: ByteByteGo — logging metrics tracing observability (https://www.youtube.com/results?search_query=ByteByteGo+logging+metrics+tracing+observability)
+
 ### security
 - Learn: OWASP Top 10: https://owasp.org/www-project-top-ten/ ; OAuth 2.0 simplified: https://www.oauth.com/
 - Text: Karan Pratap Singh *System Design* (free): https://github.com/karanpratapsingh/system-design — 'OAuth 2.0 and OpenID Connect' and 'SSO' chapters
 - Watch: ByteByteGo — OAuth 2.0 explained (https://www.youtube.com/results?search_query=ByteByteGo+OAuth+2.0+explained)
 - Watch: ByteByteGo — session vs JWT (https://www.youtube.com/results?search_query=ByteByteGo+session+vs+JWT)
 - Check: Session cookies vs JWTs trade-offs? Where are secrets stored? How do you isolate tenants in a shared DB?
+
 ### deployment
 - Learn: Martin Fowler — "Microservices", "MonolithFirst", "BlueGreenDeployment" articles on martinfowler.com
 - Text: Karan Pratap Singh *System Design* (free): https://github.com/karanpratapsingh/system-design — 'Monoliths and Microservices' chapter
@@ -316,10 +336,12 @@ the web and say so.
 - Learn: Hello Interview — *Delivery framework*: https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery
 - Learn: Xu-1 ch. 3 "A framework for system design interviews"
 - Watch: Hello Interview — system design interview framework (https://www.youtube.com/results?search_query=Hello+Interview+system+design+interview+framework)
+
 ### tradeoff-communication
 - Learn: Hello Interview — leveling guidance (what mid/senior/staff answers look like) on the in-a-hurry pages
 - Practice: record yourself; mock interviews (see below)
 - Watch: Hello Interview — mock system design interview senior (https://www.youtube.com/results?search_query=Hello+Interview+mock+system+design+interview+senior)
+
 ### low-level-design
 - Learn: AlgoMaster *Awesome Low-Level Design*: https://github.com/ashishps1/awesome-low-level-design
 - Go deeper: *Head First Design Patterns* 💲
@@ -333,12 +355,45 @@ the web and say so.
 - Go deeper: vLLM paper "Efficient Memory Management for LLM Serving with PagedAttention" (SOSP 2023)
 - Watch: Hello Interview — ChatGPT system design (https://www.youtube.com/results?search_query=Hello+Interview+ChatGPT+system+design)
 - Check: Why does streaming tokens change your API and LB choices? Where does a vector DB fit and when is plain Postgres + pgvector enough? How do you cache LLM responses safely?
+
 ### collab-editing
 - Learn: Hello Interview — *Google Docs* breakdown: https://www.hellointerview.com/learn/system-design/problem-breakdowns/google-docs
 - Go deeper: Martin Kleppmann's CRDT talks; https://crdt.tech/
+- Watch: Martin Kleppmann — CRDTs the hard parts (https://www.youtube.com/results?search_query=Martin+Kleppmann+CRDTs+the+hard+parts)
+
+## P10 AI systems track
+
+Included when the plan is created with `--ai-track`. These come up more in interviews now, and the
+best material is practitioner writing rather than textbooks.
+
+### rag-systems
+- Learn: Eugene Yan — *Patterns for Building LLM-based Systems & Products* (retrieval, evals, caching, guardrails): https://eugeneyan.com/writing/llm-patterns/
+- Text: Pinecone — *Chunking Strategies for LLM Applications*: https://www.pinecone.io/learn/chunking-strategies/
+- Go deeper: Chip Huyen, *AI Engineering* 💲 — RAG chapter
+- Watch: Hello Interview — RAG system design (https://www.youtube.com/results?search_query=Hello+Interview+RAG+system+design)
+- Check: How do you pick chunk size and overlap, and how would you know it's wrong? Why combine BM25 with vector search? How do you keep the index fresh when 1M documents change daily, and enforce per-user document permissions at retrieval time?
+
+### llm-gateway
+- Learn: LiteLLM proxy docs — a concrete open-source gateway (routing, budgets, fallbacks, keys): https://docs.litellm.ai/docs/simple_proxy
+- Text: Eugene Yan — LLM patterns, "Caching" section (semantic caching and when it's unsafe): https://eugeneyan.com/writing/llm-patterns/
+- Watch: AI Engineer — LLM gateway routing fallbacks (https://www.youtube.com/results?search_query=AI+Engineer+LLM+gateway+routing+fallbacks)
+- Check: Rate-limit by requests or by tokens — why? How does a fallback to another provider interact with a response that's already streaming? When is a semantic cache hit wrong?
+
+### agent-systems
+- Learn: Anthropic — *Building effective agents* (workflows vs agents, common patterns): https://www.anthropic.com/engineering/building-effective-agents
+- Text: Anthropic — *Harness design for long-running apps*: https://www.anthropic.com/engineering/harness-design-long-running-apps
+- Go deeper: Anthropic — *Demystifying evals for AI agents*: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+- Watch: AI Engineer — agent infrastructure sandboxes (https://www.youtube.com/results?search_query=AI+Engineer+agent+infrastructure+sandboxes)
+- Check: Where does the agent loop run, and how do you resume it after a crash mid-tool-call? How do you limit what a tool call can touch (blast radius)? What counts as agent "memory", and how is it scoped?
+
+### llm-evals
+- Learn: Hamel Husain — *Your AI Product Needs Evals*: https://hamel.dev/blog/posts/evals/index.html
+- Text: Hamel Husain — *Using LLM-as-a-Judge for Evaluation*: https://hamel.dev/blog/posts/llm-judge/
+- Text: OpenTelemetry — semantic conventions for generative AI (tracing LLM calls): https://opentelemetry.io/docs/specs/semconv/gen-ai/
+- Watch: Eugene Yan — *Building Blocks for LLM Systems & Products* (AI Engineer Summit keynote): https://ai.engineer/talks/building-blocks-for-llm-systems-products
+- Check: Offline eval sets vs online metrics — what does each catch? How do you validate an LLM judge? What do you log per request to debug a bad answer a week later without keeping sensitive data forever?
 
 ---
-- Watch: Martin Kleppmann — CRDTs the hard parts (https://www.youtube.com/results?search_query=Martin+Kleppmann+CRDTs+the+hard+parts)
 
 ## Practice platforms, mocks and diagram tools
 

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: excalidraw-chat-no-routing
+expected_outcome: |
+  The review extracts the exact components and arrows from the Excalidraw file (Mobile app, Web app, Load balancer, Chat servers (WebSocket) x20, MySQL, plus the notes), identifies that there is no way to deliver a message to a recipient connected to a different chat server, that offline delivery/push and presence are missing, that a single MySQL cannot handle 100B messages/day, and scores it well below the pass mark.
+context:
+  scaffold_script: place-files.sh

@@ -115,118 +115,203 @@ def week_of(st) -> int:
 
 
 # ---------------------------------------------------------------- init
-def cmd_init(args):
-    d = state_dir(args)
-    if (d / "progress.json").exists() and not args.force:
-        sys.exit(f"{d/'progress.json'} already exists. Use --force to start over.")
-    catalog, topics, _ = load_catalog()
+def build_plan(todo, ready_ids, include, first_week, last_week, budget, goal, level,
+               skip_problems=(), total_weeks=None):
+    """Lay out `todo` topics and eligible problems over weeks first_week..last_week.
+
+    ready_ids: topics already done (count as available from first_week).
+    Returns (plan_weeks, problems_left_out, overload) where overload is None or a dict with
+    the hours/week this plan really needs.
+    """
+    _, topics, _ = load_catalog()
     problems = load_problems()
-
-    tracks = {"core"}
-    if args.goal in ("real-world", "both") or args.level in ("senior", "staff"):
-        tracks.add("depth")
-    if args.include_optional:
-        tracks.add("optional")
-    include = {t["id"] for t in catalog if t["track"] in tracks}
-    include |= set(_csv(args.add_topics))
-    include -= set(_csv(args.skip_topics))
-    known = set(_csv(args.known))
-
-    order = topo_order(catalog, include)
-    weeks = max(1, args.weeks)
-    budget = args.hours_per_week
-    practice_share = 0.35 if args.goal != "real-world" else 0.25
+    total_weeks = total_weeks or last_week
+    weeks = list(range(first_week, last_week + 1))
+    n = len(weeks)
+    practice_share = 0.35 if goal != "real-world" else 0.25
     learn_budget = budget * (1 - practice_share)
-
-    # spread topics across the first ~80% of weeks; last weeks are practice/mock heavy
-    learn_weeks = max(1, round(weeks * 0.8)) if weeks > 2 else weeks
-    todo = [t for t in order if t not in known]
-    total_h = sum(topics[t]["hours"] for t in todo) or 1
-    per_week_h = max(learn_budget, total_h / learn_weeks)
-    plan, wk, acc = [], 1, 0.0
-    buckets = {w: [] for w in range(1, weeks + 1)}
+    learn_last = first_week + (max(1, round(n * 0.8)) if n > 2 else n) - 1
+    learn_n = learn_last - first_week + 1
+    total_h = sum(topics[t]["hours"] for t in todo) or 0
+    per_week_h = max(learn_budget, (total_h / learn_n) if learn_n else total_h)
+    buckets = {w: [] for w in weeks}
+    wk, acc = first_week, 0.0
     for t in todo:
         h = topics[t]["hours"]
-        if acc + h > per_week_h * 1.15 and buckets[wk] and wk < learn_weeks:
+        if acc + h > per_week_h * 1.15 and buckets[wk] and wk < learn_last:
             wk, acc = wk + 1, 0.0
         buckets[wk].append(t)
         acc += h
 
-    # assign problems once all their (included) topics are scheduled
-    scheduled_by = {}
-    for w in range(1, weeks + 1):
+    scheduled_by = {t: first_week - 1 for t in ready_ids}
+    for w in weeks:
         for t in buckets[w]:
             scheduled_by[t] = w
-    for t in known:
-        scheduled_by[t] = 0
-    max_level = {"junior": 2, "mid": 2, "senior": 3, "staff": 3}[args.level]
+    max_level = {"junior": 2, "mid": 2, "senior": 3, "staff": 3}[level]
+    lvl = {p["id"]: LEVEL_ORDER.get(p["level"], 2) for p in problems}
+    file_order = {p["id"]: i for i, p in enumerate(problems)}
     prob_week = {}
-    for p in sorted(problems, key=lambda p: LEVEL_ORDER.get(p["level"], 2)):
-        if LEVEL_ORDER.get(p["level"], 2) > max_level:
+    for p in problems:
+        if lvl[p["id"]] > max_level or p["id"] in skip_problems:
             continue
-        needed = [scheduled_by.get(t, 0) for t in p["topics"] if t in include]
-        ready = max([1] + needed)
+        needed = [scheduled_by.get(t, first_week) for t in p["topics"] if t in include]
+        ready = max([first_week] + needed)
         if p["level"] == "L3":  # hard problems only after some L2 practice
-            ready = max(ready, (weeks + 1) // 2 + 1)
+            ready = max(ready, (total_weeks + 1) // 2 + 1)
         prob_week[p["id"]] = ready
     base_cap = max(1, round(budget * practice_share / 2.5))  # ~2.5h per problem incl. review
-    cap = {w: base_cap if w <= learn_weeks else max(2, round(budget / 2.5)) for w in range(1, weeks + 1)}
-    pweeks = {w: [] for w in range(1, weeks + 1)}
-    file_order = {p["id"]: i for i, p in enumerate(problems)}
+    cap = {w: base_cap if w <= learn_last else max(2, round(budget / 2.5)) for w in weeks}
+    pweeks = {w: [] for w in weeks}
+    # problems from an opted-in AI track jump ahead of same-level problems once they're ready
+    ai_ids = {t for t in include if topics.get(t, {}).get("track") == "ai"}
+    is_ai = {p["id"]: bool(ai_ids & set(p["topics"])) for p in problems}
     queue = sorted(prob_week, key=lambda pid: (prob_week[pid], file_order[pid]))
-    # greedy: each week takes the earliest-ready problems (easier levels first by file order)
-    for w in range(1, weeks + 1):
-        ready = [pid for pid in queue if prob_week[pid] <= w]
-        lvl = lambda pid: LEVEL_ORDER.get(next(p["level"] for p in problems if p["id"] == pid), 2)
-        ready.sort(key=lambda pid: (lvl(pid), file_order[pid]))
-        if w > learn_weeks and max_level == 3:  # senior+: each practice week gets one hard problem
-            hard = [pid for pid in ready if lvl(pid) == 3]
+    for w in weeks:
+        ready = sorted([pid for pid in queue if prob_week[pid] <= w],
+                       key=lambda pid: (lvl[pid], not is_ai[pid], file_order[pid]))
+        if w > learn_last and max_level == 3:  # senior+: each practice week gets one hard problem
+            hard = [pid for pid in ready if lvl[pid] == 3]
             if hard:
                 ready.remove(hard[0])
                 ready.insert(0, hard[0])
         for pid in ready[:cap[w]]:
             pweeks[w].append(pid)
             queue.remove(pid)
-    if per_week_h > learn_budget * 1.25:
-        needed = int(-(-total_h // learn_budget) / 0.8) + 1
-        extra = ""
-        if "depth" in tracks:
-            extra = ", or drop the depth track (--goal interview with --level mid, or --skip-topics)"
-        print(f"Heads-up: {len(todo)} topics (~{total_h:g} h of study) in {learn_weeks} learning weeks "
-              f"needs about {per_week_h / (1 - practice_share):.0f} h/week including practice, "
-              f"not {budget:g}. Options: --weeks {needed}, more hours per week, "
-              f"--known for topics already mastered{extra}. The plan below is front-loaded "
-              f"to fit the weeks you gave.")
+    plan = [{"week": w, "topics": buckets[w], "problems": pweeks[w],
+             "mock": goal != "real-world" and w >= max(2, total_weeks - 1)} for w in weeks]
+    overload = None
+    if learn_budget and per_week_h > learn_budget * 1.25:
+        overload = {"topics": len(todo), "hours": total_h, "learn_weeks": learn_n,
+                    "needed_per_week": per_week_h / (1 - practice_share),
+                    "weeks_needed": first_week - 1 + int(-(-total_h // learn_budget) / 0.8) + 1}
+    return plan, queue, overload
 
-    for w in range(1, weeks + 1):
-        plan.append({"week": w, "topics": buckets[w], "problems": pweeks[w],
-                     "mock": args.goal != "real-world" and w >= max(2, weeks - 1)})
 
+def tracks_for(goal, level, include_optional=False, ai_track=False):
+    tracks = {"core"}
+    if goal in ("real-world", "both") or level in ("senior", "staff"):
+        tracks.add("depth")
+    if include_optional:
+        tracks.add("optional")
+    if ai_track:
+        tracks |= {"ai", "depth"}  # AI topics build on the depth track (llm-systems, search)
+    return tracks
+
+
+def print_overload(o, budget, tracks):
+    if not o:
+        return
+    extra = ", or drop the depth track (--skip-topics)" if "depth" in tracks else ""
+    print(f"Heads-up: {o['topics']} topics (~{o['hours']:g} h of study) in {o['learn_weeks']} learning "
+          f"weeks needs about {o['needed_per_week']:.0f} h/week including practice, not {budget:g}. "
+          f"Options: about {o['weeks_needed']} weeks in total, more hours per week, skim checks "
+          f"for topics you already know{extra}. The plan is front-loaded to fit the weeks given; "
+          f"`progress.py replan` rebalances it later from your real pace.")
+
+
+def cmd_init(args):
+    d = state_dir(args)
+    if (d / "progress.json").exists() and not args.force:
+        sys.exit(f"{d/'progress.json'} already exists. Use --force to start over, "
+                 f"or `replan` to rebalance and keep your history.")
+    catalog, topics, _ = load_catalog()
+    tracks = tracks_for(args.goal, args.level, args.include_optional, args.ai_track)
+    include = {t["id"] for t in catalog if t["track"] in tracks}
+    include |= set(_csv(args.add_topics))
+    include -= set(_csv(args.skip_topics))
+    known = set(_csv(args.known))
+    order = topo_order(catalog, include)
+    weeks = max(1, args.weeks)
+    todo = [t for t in order if t not in known]
+    plan, left, overload = build_plan(todo, known, include, 1, weeks, args.hours_per_week,
+                                      args.goal, args.level)
+    print_overload(overload, args.hours_per_week, tracks)
     st = {
         "version": 1,
         "profile": {
             "name": args.name, "goal": args.goal, "level": args.level,
-            "weeks": weeks, "hours_per_week": budget,
+            "weeks": weeks, "hours_per_week": args.hours_per_week,
             "start": args.start or today().isoformat(),
             "target_date": args.target_date, "notes": args.notes,
+            "include": sorted(include),
         },
         "plan": plan,
         "topics": {t: {"status": "done" if t in known else "todo", "quiz": None,
-                       "reviews": [], "next_review": None, "notes": ""} for t in order},
+                       "reviews": [], "next_review": None, "notes": "",
+                       **({"known": True} if t in known else {})} for t in order},
         "attempts": [],
         "log": [],
         "created": today().isoformat(),
     }
     save_state(args, st)
-    unscheduled = [p for p in problems if p["id"] not in {x for v in pweeks.values() for x in v}
-                   and LEVEL_ORDER.get(p["level"], 2) <= max_level]
     print(f"Plan created in {d}/ — {len(todo)} topics, "
-          f"{sum(len(v) for v in pweeks.values())} problems over {weeks} weeks "
-          f"(~{budget} h/week).")
-    if unscheduled:
-        print(f"{len(unscheduled)} more problems available as extra practice "
+          f"{sum(len(w['problems']) for w in plan)} problems over {weeks} weeks "
+          f"(~{args.hours_per_week:g} h/week).")
+    if left:
+        print(f"{len(left)} more problems available as extra practice "
               f"(`progress.py problems --eligible`).")
     print(f"Readable plan: {d/'progress.md'}")
+
+
+def pace(st):
+    """Measured pace: topics finished and hours logged per elapsed week."""
+    start = dt.date.fromisoformat(st["profile"]["start"])
+    elapsed_w = max(1.0, (today() - start).days / 7)
+    done = [t for t in st["topics"].values() if t["status"] == "done" and not t.get("known")]
+    hours = sum(e["minutes"] for e in st["log"]) / 60
+    left = sum(1 for t in st["topics"].values() if t["status"] in ("todo", "learning"))
+    topics_pw = len(done) / elapsed_w
+    weeks_left = st["profile"]["weeks"] - week_of(st) + 1
+    projected = (left / topics_pw) if topics_pw else None
+    return {"elapsed_weeks": round(elapsed_w, 1), "topics_per_week": round(topics_pw, 1),
+            "hours_per_week": round(hours / elapsed_w, 1), "topics_left": left,
+            "weeks_left": weeks_left,
+            "projected_weeks": round(projected, 1) if projected else None}
+
+
+def cmd_replan(args):
+    st = load_state(args)
+    catalog, topics, _ = load_catalog()
+    p = st["profile"]
+    if args.weeks:
+        p["weeks"] = args.weeks
+    if args.hours_per_week:
+        p["hours_per_week"] = args.hours_per_week
+    wk = week_of(st)
+    if wk > p["weeks"]:
+        p["weeks"] = wk + 1
+    include = set(p.get("include") or st["topics"].keys())
+    include |= set(_csv(args.add_topics))
+    include -= set(_csv(args.skip_topics))
+    for t in include:
+        st["topics"].setdefault(t, {"status": "todo", "quiz": None, "reviews": [],
+                                    "next_review": None, "notes": ""})
+    for t in _csv(args.skip_topics):
+        if t in st["topics"] and st["topics"][t]["status"] != "done":
+            st["topics"][t]["status"] = "skipped"
+    p["include"] = sorted(include)
+    order = topo_order(catalog, include)
+    done = {t for t in order if st["topics"][t]["status"] == "done"}
+    todo = [t for t in order if st["topics"][t]["status"] in ("todo", "learning")]
+    # learning topics go first so nothing half-finished drifts to the back
+    todo = [t for t in todo if st["topics"][t]["status"] == "learning"] + \
+           [t for t in todo if st["topics"][t]["status"] == "todo"]
+    best = best_scores(st)
+    passed = {pid for pid, s in best.items() if s >= PASS_SCORE}
+    budget = p["hours_per_week"]
+    measured = pace(st)["hours_per_week"]
+    if args.use_measured and st["log"] and measured:
+        budget = measured
+    kept = [w for w in st["plan"] if w["week"] < wk]
+    plan, left, overload = build_plan(todo, done, include, wk, p["weeks"], budget,
+                                      p["goal"], p["level"], skip_problems=passed,
+                                      total_weeks=p["weeks"])
+    st["plan"] = kept + plan
+    print_overload(overload, budget, tracks_for(p["goal"], p["level"]))
+    save_state(args, st)
+    print(f"Replanned weeks {wk}–{p['weeks']}: {len(todo)} topics and "
+          f"{sum(len(w['problems']) for w in plan)} problems left (~{budget:g} h/week). "
+          f"History kept: {len(done)} topics done, {len(st['attempts'])} attempts.")
 
 
 def _csv(s):
@@ -251,6 +336,8 @@ def cmd_topic(args):
         if args.quiz < 3:  # didn't really get it yet -> keep learning, review soon
             t["status"] = "learning" if t["status"] == "done" else t["status"]
             t["next_review"] = (today() + dt.timedelta(days=1)).isoformat()
+    if args.skim:
+        t["skimmed"] = True  # passed a quick check instead of the full lesson
     if args.notes:
         t["notes"] = (t.get("notes", "") + "\n" + args.notes).strip()
     save_state(args, st)
@@ -435,6 +522,16 @@ def cmd_status(args):
     behind = expected_topics - done_scheduled
     if behind > 0:
         print(f"Behind schedule by {behind} topic(s) from weeks before week {wk}.")
+    pc = pace(st)
+    if pc["elapsed_weeks"] >= 1 and pc["topics_left"]:
+        line = (f"Pace: {pc['topics_per_week']} topics/week, {pc['hours_per_week']} h/week logged")
+        if pc["projected_weeks"] and pc["projected_weeks"] > pc["weeks_left"] * 1.2:
+            line += (f" — at this pace the remaining {pc['topics_left']} topics take "
+                     f"~{pc['projected_weeks']:.0f} weeks, but {pc['weeks_left']} are left. "
+                     f"Consider `replan` (more weeks, skim known topics, or --skip-topics).")
+        elif not pc["topics_per_week"]:
+            line += " — no topics finished yet."
+        print(line)
     if st["attempts"]:
         last = st["attempts"][-1]
         print(f"Last attempt: {problems.get(last['problem'], {}).get('title', last['problem'])} "
@@ -485,6 +582,90 @@ def cmd_problems(args):
         b = best.get(p["id"])
         mark = "" if b is None else (f"best {b}" + (" ✓" if b >= PASS_SCORE else ""))
         print(f"{p['level']}\t{p['id']:<26}\t{mark:<10}\t{p['title']}")
+
+
+def dashboard_payload(st):
+    """Everything the dashboard page renders, plus the raw state for restoring."""
+    _, catalog, phases = load_catalog()
+    problems = {p["id"]: p for p in load_problems()}
+    best = best_scores(st)
+    tt = st["topics"]
+    wk = week_of(st)
+    planned = [x for w in st["plan"] for x in w["problems"]]
+    weeks = []
+    for w in st["plan"]:
+        weeks.append({
+            "week": w["week"], "mock": w.get("mock", False), "current": w["week"] == wk,
+            "topics": [{"id": t, "title": catalog[t]["title"], "phase": phases[catalog[t]["phase"]],
+                        "status": tt.get(t, {}).get("status", "todo"),
+                        "quiz": tt.get(t, {}).get("quiz"),
+                        "skimmed": bool(tt.get(t, {}).get("skimmed"))} for t in w["topics"]],
+            "problems": [{"id": pid, "title": problems.get(pid, {}).get("title", pid),
+                          "level": problems.get(pid, {}).get("level", ""),
+                          "best": best.get(pid)} for pid in w["problems"]],
+        })
+    _, cat, _ = load_catalog()
+    nxt = []
+    for kind, ident in next_actions(st):
+        title = cat[ident]["title"] if kind != "practice" else problems.get(ident, {}).get("title", ident)
+        nxt.append({"kind": kind, "id": ident, "title": title})
+    attempts = [{**a, "title": problems.get(a["problem"], {}).get("title", a["problem"])}
+                for a in st["attempts"]]
+    return {
+        "schema": 1,
+        "updated": today().isoformat(),
+        "profile": {k: st["profile"].get(k) for k in
+                    ("name", "goal", "level", "weeks", "hours_per_week", "start", "target_date")},
+        "week": min(wk, st["profile"]["weeks"]),
+        "stats": {
+            "topics_done": sum(1 for t in tt.values() if t["status"] == "done"),
+            "topics_learning": sum(1 for t in tt.values() if t["status"] == "learning"),
+            "topics_total": sum(1 for t in tt.values() if t["status"] != "skipped"),
+            "problems_passed": sum(1 for x in planned if best.get(x, -1) >= PASS_SCORE),
+            "problems_planned": len(planned),
+            "study_hours": round(sum(e["minutes"] for e in st["log"]) / 60, 1),
+            "streak": streak_days(st),
+        },
+        "pace": pace(st),
+        "reviews_due": [{"id": t, "title": cat[t]["title"]} for t in due_reviews(st)],
+        "weak": [{"dim": k, "avg": v} for k, v in weak_dimensions(st)],
+        "rubric_avg": rubric_averages(st),
+        "next": nxt,
+        "plan": weeks,
+        "attempts": attempts,
+        "raw": st,
+    }
+
+
+def rubric_averages(st):
+    sums, counts = {}, {}
+    for a in st["attempts"][-6:]:
+        for k, v in a["rubric"].items():
+            sums[k] = sums.get(k, 0) + v
+            counts[k] = counts.get(k, 0) + 1
+    return {k: round(sums[k] / counts[k], 2) for k in RUBRIC_KEYS if k in sums}
+
+
+def cmd_dashboard(args):
+    st = load_state(args)
+    out = Path(args.out or (state_dir(args) / "dashboard.json"))
+    payload = dashboard_payload(st)
+    doc = {"payload": payload} if args.wrap else payload
+    out.write_text(json.dumps(doc, indent=1))
+    print(out)
+
+
+def cmd_restore(args):
+    """Rebuild local state from a dashboard document (or a plain progress.json)."""
+    data = json.loads(Path(args.file).read_text())
+    for key in ("payload", "data"):
+        if isinstance(data, dict) and key in data and isinstance(data[key], dict):
+            data = data[key]
+    st = data.get("raw", data)
+    if "profile" not in st or "topics" not in st:
+        sys.exit("That file doesn't contain progress state (expected 'raw' or a progress.json).")
+    save_state(args, st)
+    print(f"Restored progress for {st['profile'].get('name') or 'learner'} into {state_dir(args)}/")
 
 
 def cmd_report(args):
@@ -555,11 +736,26 @@ def main(argv=None):
     s.add_argument("--add-topics", help="extra topic ids to include")
     s.add_argument("--skip-topics", help="topic ids to leave out")
     s.add_argument("--include-optional", action="store_true", help="include optional track (LLD)")
+    s.add_argument("--ai-track", action="store_true", help="add the AI systems track (RAG, LLM gateways, agents, evals)")
     s.add_argument("--notes", default="")
     s.add_argument("--force", action="store_true")
     s.set_defaults(fn=cmd_init)
 
     s = sp.add_parser("status"); s.set_defaults(fn=cmd_status)
+
+    s = sp.add_parser("replan", help="rebalance remaining weeks, keeping all history")
+    s.add_argument("--weeks", type=int, help="new total number of weeks")
+    s.add_argument("--hours-per-week", type=float)
+    s.add_argument("--use-measured", action="store_true", help="size weeks from logged study time")
+    s.add_argument("--add-topics"); s.add_argument("--skip-topics")
+    s.set_defaults(fn=cmd_replan)
+
+    s = sp.add_parser("dashboard", help="write the dashboard document (JSON)")
+    s.add_argument("--out"); s.add_argument("--wrap", action="store_true", help="wrap as {payload: ...}")
+    s.set_defaults(fn=cmd_dashboard)
+
+    s = sp.add_parser("restore", help="restore local state from a dashboard document or progress.json")
+    s.add_argument("file"); s.set_defaults(fn=cmd_restore)
     s = sp.add_parser("next"); s.add_argument("-n", type=int, default=5); s.set_defaults(fn=cmd_next)
 
     s = sp.add_parser("topic", help="update a topic")
@@ -567,6 +763,7 @@ def main(argv=None):
     s.add_argument("--status", choices=["todo", "learning", "done", "skipped"])
     s.add_argument("--quiz", type=int, choices=range(0, 5), help="concept check score 0-4")
     s.add_argument("--notes")
+    s.add_argument("--skim", action="store_true", help="passed a quick skim check instead of the full lesson")
     s.set_defaults(fn=cmd_topic)
 
     s = sp.add_parser("review", help="record a spaced review")

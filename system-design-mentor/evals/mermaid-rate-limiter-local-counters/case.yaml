@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: mermaid-rate-limiter-local-counters
+expected_outcome: |
+  The review parses the Mermaid design, identifies that per-server in-memory token buckets let each client get the limit times the number of servers (~120x) because the load balancer spreads requests, recommends a shared counter store (e.g. Redis with atomic operations) or sticky routing with its trade-offs, and scores it below 70.
+context:
+  scaffold_script: place-files.sh

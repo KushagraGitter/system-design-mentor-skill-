@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: photo-news-feed-celebrity-and-smudge
+expected_outcome: |
+  The review transcribes the notebook photo, asks about (rather than guesses) the blurred/illegible label on the box connected to Feed service, identifies that fan-out on write for everyone breaks for accounts with 100M followers and recommends a hybrid approach, scores it below 70, and gives an improved Mermaid diagram of the learner's design.
+context:
+  scaffold_script: place-files.sh

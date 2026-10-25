@@ -1,0 +1,296 @@
+<title>System Design Logbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: an engineer's logbook — summary gauges up top, this week as the working card,
+   then the full plan as a timeline and the graded-attempt ledger. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --ink: #17212b;
+  --muted: #5b6875;
+  --line: #d9e0e6;
+  --accent: #2456c9;
+  --accent-soft: #e4ebfb;
+  --ok: #1b7f4b;      --ok-soft: #dff3e8;
+  --warn: #a35c00;    --warn-soft: #fbecd6;
+  --bad: #b3261e;     --bad-soft: #f9e0de;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f151b; --surface: #17202a; --ink: #e6ecf1; --muted: #93a1ae; --line: #2a3643;
+  --accent: #7ea2ff; --accent-soft: #1d2a47;
+  --ok: #5fd39a; --ok-soft: #173326; --warn: #f0b35c; --warn-soft: #3a2a12; --bad: #ff8f86; --bad-soft: #3d1c1a;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f151b; --surface: #17202a; --ink: #e6ecf1; --muted: #93a1ae; --line: #2a3643;
+  --accent: #7ea2ff; --accent-soft: #1d2a47;
+  --ok: #5fd39a; --ok-soft: #173326; --warn: #f0b35c; --warn-soft: #3a2a12; --bad: #ff8f86; --bad-soft: #3d1c1a;
+  color-scheme: dark; }
+
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+h2 { font-size: 1.15rem; }
+.eyebrow { font: 600 0.72rem/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.muted { color: var(--muted); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+header .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); font: 600 0.78rem/1.6 var(--body); white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.plain { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+/* gauges */
+.gauges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.gauge { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; }
+.gauge .num { font: 600 1.7rem/1 var(--mono); font-variant-numeric: tabular-nums; }
+.gauge .num small { font-size: 0.9rem; color: var(--muted); font-weight: 400; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+
+.alert { border-radius: 10px; padding: 12px 16px; background: var(--warn-soft); color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent); }
+.alert strong { color: var(--warn); }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+
+ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+ul.list li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 7px 0; border-top: 1px solid var(--line); }
+ul.list li:first-child { border-top: 0; }
+.dot { width: 14px; height: 14px; margin-top: 4px; border-radius: 50%; border: 2px solid var(--line); }
+.dot.done { background: var(--ok); border-color: var(--ok); }
+.dot.learning { border-color: var(--warn); background: linear-gradient(90deg, var(--warn) 50%, transparent 50%); }
+.dot.todo { background: transparent; }
+.dot.prob { border-radius: 3px; border-color: var(--accent); }
+.dot.prob.pass { background: var(--accent); }
+.item-title { min-width: 0; }
+.item-title .id { font: 0.74rem var(--mono); color: var(--muted); }
+
+/* rubric */
+.rubric { display: grid; gap: 8px; }
+.rrow { display: grid; grid-template-columns: 120px minmax(0, 1fr) 36px; gap: 10px; align-items: center; font-size: 0.88rem; }
+.rtrack { height: 8px; border-radius: 4px; background: var(--line); position: relative; overflow: hidden; }
+.rtrack > i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
+
+/* score chart */
+svg.trend { width: 100%; height: auto; display: block; }
+svg.trend text { fill: var(--muted); font: 10px var(--mono); }
+
+/* plan timeline */
+.weeks { display: grid; gap: 10px; }
+details.week { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+details.week[open] { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+details.week.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+details.week summary { list-style: none; cursor: pointer; padding: 12px 16px; display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+details.week summary::-webkit-details-marker { display: none; }
+details.week summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+.wk-label { font: 600 0.82rem var(--mono); }
+.pips { display: flex; flex-wrap: wrap; gap: 4px; }
+.pip { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.pip.done { background: var(--ok); } .pip.learning { background: var(--warn); }
+.pip.prob { border-radius: 2px; background: transparent; border: 2px solid var(--accent); width: 10px; height: 10px; box-sizing: border-box; }
+.pip.prob.pass { background: var(--accent); }
+.week-body { padding: 0 16px 14px; }
+
+/* attempts table */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+th { font: 600 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-top: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.empty { text-align: center; padding: 48px 20px; display: grid; gap: 10px; justify-items: center; }
+.empty code { font-family: var(--mono); background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 6px; }
+footer { font-size: 0.8rem; color: var(--muted); }
+
+@media (max-width: 760px) {
+  .gauges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  details.week summary { grid-template-columns: 70px minmax(0, 1fr); }
+  details.week summary .wk-count { display: none; }
+  .rrow { grid-template-columns: 96px minmax(0, 1fr) 32px; }
+}
+@media (prefers-reduced-motion: no-preference) { .bar > i, .rtrack > i { transition: width .4s ease; } }
+</style>
+
+<div class="wrap" id="app">
+  <section class="empty" id="empty">
+    <span class="eyebrow">System design logbook</span>
+    <h1>Your progress will appear here</h1>
+    <p class="muted" style="max-width:52ch">Ask Claude to set up your study plan with the System Design Mentor skill. Your plan, topics, review schedule and graded designs will fill this page, and stay here between chats.</p>
+    <p class="muted">Try: <code>help me prepare for system design interviews</code></p>
+  </section>
+</div>
+
+<script>
+const ICON = { done: "done", learning: "learning", todo: "todo", skipped: "todo" };
+const DIM = { req: "Requirements", est: "Estimation", api: "API & data", arch: "Architecture",
+              deep: "Deep dives", tradeoff: "Trade-offs", rel: "Reliability", clarity: "Diagram clarity" };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const goalText = g => ({ interview: "Interview prep", "real-world": "Real-world architecture", both: "Interview + real-world" }[g] || g);
+const fmtDate = d => d ? new Date(d + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" }) : "";
+const scoreChip = s => s == null ? "" : `<span class="chip ${s >= 70 ? "ok" : s >= 50 ? "warn" : "bad"} mono">${s}</span>`;
+
+function render(p) {
+  const app = document.getElementById("app");
+  const s = p.stats, prof = p.profile, pace = p.pace || {};
+  const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+  const cur = p.plan.find(w => w.current) || p.plan.find(w => w.week === p.week) || p.plan[0];
+  const behind = pace.projected_weeks && pace.elapsed_weeks >= 1 && pace.projected_weeks > pace.weeks_left * 1.2;
+
+  const gauges = `
+  <section class="gauges" aria-label="Summary">
+    <div class="gauge"><span class="eyebrow">Topics done</span>
+      <span class="num">${s.topics_done}<small>/${s.topics_total}</small></span>
+      <div class="bar"><i style="width:${pct(s.topics_done, s.topics_total)}%"></i></div></div>
+    <div class="gauge"><span class="eyebrow">Problems passed</span>
+      <span class="num">${s.problems_passed}<small>/${s.problems_planned}</small></span>
+      <div class="bar"><i style="width:${pct(s.problems_passed, s.problems_planned)}%"></i></div></div>
+    <div class="gauge"><span class="eyebrow">Study time</span>
+      <span class="num">${s.study_hours}<small> h</small></span>
+      <span class="muted" style="font-size:.82rem">${pace.hours_per_week ?? 0} h/week · plan ${prof.hours_per_week} h</span></div>
+    <div class="gauge"><span class="eyebrow">Streak</span>
+      <span class="num">${s.streak}<small> day${s.streak === 1 ? "" : "s"}</span>
+      <span class="muted" style="font-size:.82rem">${s.topics_learning} topic${s.topics_learning === 1 ? "" : "s"} in progress</span></div>
+  </section>`;
+
+  const alert = behind ? `<div class="alert" role="status"><strong>Pace check.</strong> At ${pace.topics_per_week} topics a week, the remaining ${pace.topics_left} take about ${Math.round(pace.projected_weeks)} weeks, and ${pace.weeks_left} are left. Ask Claude to replan: more weeks, skim checks for topics you know, or trim the depth topics.</div>` : "";
+
+  const nextItems = (p.reviews_due.length ? p.reviews_due.slice(0, 4).map(r => ({ kind: "review", id: r.id, title: r.title })) : [])
+    .concat(p.next.filter(n => n.kind !== "review")).slice(0, 6);
+  const nextList = nextItems.length ? `<ul class="list">${nextItems.map(n => `
+      <li><span class="dot ${n.kind === "practice" ? "prob" : n.kind === "review" ? "learning" : "todo"}"></span>
+        <span class="item-title">${esc(n.title)}<br><span class="id">${esc(n.id)}</span></span>
+        <span class="chip ${n.kind === "review" ? "warn" : n.kind === "practice" ? "" : "plain"}">${n.kind}</span></li>`).join("")}</ul>`
+    : `<p class="muted">Nothing queued. Ask Claude for the next topic or a practice problem.</p>`;
+
+  const weekList = cur ? `<ul class="list">${cur.topics.map(t => `
+      <li><span class="dot ${ICON[t.status]}"></span>
+        <span class="item-title">${esc(t.title)}<br><span class="id">${esc(t.id)} · ${esc(t.phase)}</span></span>
+        <span>${t.quiz != null ? `<span class="chip ${t.quiz >= 3 ? "ok" : "warn"} mono">${t.quiz}/4</span>` : ""}${t.skimmed ? ` <span class="chip plain">skimmed</span>` : ""}</span></li>`).join("")}
+      ${cur.problems.map(pr => `
+      <li><span class="dot prob ${pr.best >= 70 ? "pass" : ""}"></span>
+        <span class="item-title">${esc(pr.title)}<br><span class="id">${esc(pr.id)} · practice ${esc(pr.level)}</span></span>
+        <span>${scoreChip(pr.best)}</span></li>`).join("")}</ul>` : "";
+
+  const rub = p.rubric_avg || {};
+  const rubric = Object.keys(rub).length ? `<div class="rubric">${Object.keys(DIM).filter(k => k in rub).map(k => {
+      const v = rub[k], col = v >= 3 ? "var(--ok)" : v >= 2 ? "var(--warn)" : "var(--bad)";
+      return `<div class="rrow"><span>${DIM[k]}</span><span class="rtrack"><i style="width:${v / 4 * 100}%;background:${col}"></i></span><span class="mono">${v.toFixed(1)}</span></div>`;
+    }).join("")}</div><p class="muted" style="margin:0;font-size:.82rem">Average of your last ${Math.min(6, p.attempts.length)} graded design${p.attempts.length === 1 ? "" : "s"}, out of 4.</p>`
+    : `<p class="muted" style="margin:0">Submit a design (a photo, screenshot, or Excalidraw/draw.io file) and your rubric scores show up here.</p>`;
+
+  const trend = p.attempts.length >= 2 ? trendSvg(p.attempts) : "";
+
+  const weeks = p.plan.map(w => {
+    const done = w.topics.filter(t => t.status === "done").length;
+    const passed = w.problems.filter(pr => pr.best >= 70).length;
+    return `<details class="week ${w.current ? "current" : ""}" ${w.current ? "open" : ""}>
+      <summary>
+        <span class="wk-label">Week ${w.week}${w.current ? " ·now" : ""}</span>
+        <span class="pips" aria-label="${done} of ${w.topics.length} topics done, ${passed} of ${w.problems.length} problems passed">
+          ${w.topics.map(t => `<i class="pip ${ICON[t.status]}"></i>`).join("")}
+          ${w.problems.map(pr => `<i class="pip prob ${pr.best >= 70 ? "pass" : ""}"></i>`).join("")}
+          ${w.mock ? `<span class="chip plain" style="margin-left:4px">mocks</span>` : ""}
+        </span>
+        <span class="wk-count muted mono" style="font-size:.8rem">${done}/${w.topics.length} · ${passed}/${w.problems.length}</span>
+      </summary>
+      <div class="week-body"><ul class="list">
+        ${w.topics.map(t => `<li><span class="dot ${ICON[t.status]}"></span><span class="item-title">${esc(t.title)}<br><span class="id">${esc(t.id)}</span></span><span>${t.quiz != null ? `<span class="chip ${t.quiz >= 3 ? "ok" : "warn"} mono">${t.quiz}/4</span>` : ""}</span></li>`).join("")}
+        ${w.problems.map(pr => `<li><span class="dot prob ${pr.best >= 70 ? "pass" : ""}"></span><span class="item-title">${esc(pr.title)}<br><span class="id">${esc(pr.id)} · ${esc(pr.level)}</span></span><span>${scoreChip(pr.best)}</span></li>`).join("")}
+        ${!w.topics.length && !w.problems.length ? `<li><span></span><span class="muted">Open week</span><span></span></li>` : ""}
+      </ul></div></details>`;
+  }).join("");
+
+  const attempts = p.attempts.length ? `<div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Problem</th><th>Try</th><th>Score</th><th>Weak areas</th></tr></thead>
+      <tbody>${p.attempts.slice().reverse().map(a => `<tr>
+        <td class="num">${fmtDate(a.date)}</td><td>${esc(a.title)}</td><td class="num">${a.attempt}</td>
+        <td>${scoreChip(a.score)}</td>
+        <td>${Object.entries(a.rubric || {}).filter(([, v]) => v <= 2).map(([k]) => `<span class="chip plain">${DIM[k] || k}</span>`).join(" ") || '<span class="muted">—</span>'}</td>
+      </tr>`).join("")}</tbody></table></div>`
+    : `<p class="muted" style="margin:0">No graded designs yet. Your first practice problem is scheduled in week ${(p.plan.find(w => w.problems.length) || {}).week ?? "—"}.</p>`;
+
+  app.innerHTML = `
+    <header>
+      <div style="display:grid;gap:8px">
+        <span class="eyebrow">System design logbook</span>
+        <h1>${esc(prof.name || "Your")}${prof.name ? "’s" : ""} plan · week ${p.week} of ${prof.weeks}</h1>
+      </div>
+      <div class="meta">
+        <span class="chip">${goalText(prof.goal)}</span>
+        <span class="chip plain">${esc(prof.level)} level</span>
+        ${prof.target_date ? `<span class="chip plain">Interview ${fmtDate(prof.target_date)}</span>` : ""}
+      </div>
+    </header>
+    ${gauges}
+    ${alert}
+    <div class="cols">
+      <section class="panel">
+        <div class="panel-head"><h2>This week</h2><span class="muted mono" style="font-size:.8rem">week ${cur ? cur.week : p.week}</span></div>
+        ${weekList || '<p class="muted">No topics scheduled this week.</p>'}
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Up next</h2>${p.reviews_due.length ? `<span class="chip warn">${p.reviews_due.length} review${p.reviews_due.length === 1 ? "" : "s"} due</span>` : ""}</div>
+        ${nextList}
+      </section>
+    </div>
+    <div class="cols">
+      <section class="panel">
+        <div class="panel-head"><h2>Design attempts</h2><span class="muted" style="font-size:.82rem">70 passes</span></div>
+        ${trend}${attempts}
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Rubric strengths</h2></div>
+        ${rubric}
+      </section>
+    </div>
+    <section style="display:grid;gap:12px">
+      <div class="panel-head"><h2>Full plan</h2><span class="muted" style="font-size:.82rem">● topic &nbsp; ■ practice problem</span></div>
+      <div class="weeks">${weeks}</div>
+    </section>
+    <footer>Updated ${fmtDate(p.updated)} · started ${fmtDate(prof.start)}. Claude updates this page as you study.</footer>`;
+}
+
+function trendSvg(attempts) {
+  const W = 520, H = 120, L = 30, R = 10, T = 10, B = 22;
+  const pts = attempts.slice(-12);
+  const x = i => L + (pts.length === 1 ? 0 : i * (W - L - R) / (pts.length - 1));
+  const y = v => T + (100 - v) * (H - T - B) / 100;
+  const line = pts.map((a, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(a.score).toFixed(1)}`).join(" ");
+  const area = `${line} L${x(pts.length - 1).toFixed(1)},${y(0)} L${x(0).toFixed(1)},${y(0)} Z`;
+  const last = pts[pts.length - 1];
+  return `<svg class="trend" viewBox="0 0 ${W} ${H}" role="img" aria-label="Scores of your last ${pts.length} attempts">
+    ${[0, 50, 70, 100].map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="${v === 70 ? "4 3" : "0"}"/><text x="${L - 6}" y="${y(v) + 3}" text-anchor="end">${v}</text>`).join("")}
+    <path d="${area}" fill="var(--accent-soft)"/>
+    <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    ${pts.map((a, i) => `<circle cx="${x(i)}" cy="${y(a.score)}" r="${i === pts.length - 1 ? 4.5 : 3}" fill="${a.score >= 70 ? "var(--ok)" : "var(--accent)"}"/>`).join("")}
+    <text x="${W - R}" y="${H - 6}" text-anchor="end">latest ${last.score}</text>
+  </svg>`;
+}
+
+(async () => {
+  const db = await claude.use("db");
+  if (!db) return; // signed out or no access: the empty state explains what this page is
+  db.doc("state/progress").onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    const payload = d && (d.payload || d);
+    if (payload && payload.plan) render(payload);
+  }, () => {});
+})();
+</script>

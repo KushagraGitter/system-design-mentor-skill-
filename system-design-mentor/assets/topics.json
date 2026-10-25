@@ -9,7 +9,8 @@
     {"id": "P6", "title": "Design patterns for scale"},
     {"id": "P7", "title": "Reliability, observability and security"},
     {"id": "P8", "title": "Interview craft"},
-    {"id": "P9", "title": "Modern systems: AI/LLM and real-time"}
+    {"id": "P9", "title": "Modern systems: AI/LLM and real-time"},
+    {"id": "P10", "title": "AI systems track"}
   ],
   "topics": [
     {"id": "fundamentals", "phase": "P1", "title": "What system design is: requirements, NFRs, trade-offs", "prereqs": [], "hours": 1, "track": "core"},
@@ -53,6 +54,10 @@
     {"id": "deployment", "phase": "P7", "title": "Deployments, microservices vs monolith, containers, config, migrations", "prereqs": ["reliability"], "hours": 1, "track": "depth"},
     {"id": "low-level-design", "phase": "P8", "title": "Low-level / object-oriented design (LLD) basics", "prereqs": ["fundamentals"], "hours": 2, "track": "optional"},
     {"id": "llm-systems", "phase": "P9", "title": "LLM serving and AI apps: inference, batching, KV cache, RAG, vector DBs, evals", "prereqs": ["caching", "queues", "indexing"], "hours": 3, "track": "depth"},
-    {"id": "collab-editing", "phase": "P9", "title": "Collaborative editing: OT vs CRDTs, sync, offline-first", "prereqs": ["realtime", "time-ordering"], "hours": 2, "track": "depth"}
+    {"id": "collab-editing", "phase": "P9", "title": "Collaborative editing: OT vs CRDTs, sync, offline-first", "prereqs": ["realtime", "time-ordering"], "hours": 2, "track": "depth"},
+    {"id": "rag-systems", "phase": "P10", "title": "RAG pipelines: ingestion, chunking, embeddings, hybrid retrieval, reranking, freshness", "prereqs": ["llm-systems", "search-systems"], "hours": 3, "track": "ai"},
+    {"id": "llm-gateway", "phase": "P10", "title": "LLM gateways: routing, fallbacks, token budgets and quotas, semantic caching, cost control", "prereqs": ["llm-systems", "rate-limiting"], "hours": 2, "track": "ai"},
+    {"id": "agent-systems", "phase": "P10", "title": "Agent platforms: tool calling, sandboxes, permissions and blast radius, long-running loops, memory", "prereqs": ["llm-systems", "workflows", "security"], "hours": 3, "track": "ai"},
+    {"id": "llm-evals", "phase": "P10", "title": "LLM evals and observability: offline evals, LLM-as-judge, tracing, online metrics, guardrails", "prereqs": ["llm-systems", "observability"], "hours": 2, "track": "ai"}
   ]
 }

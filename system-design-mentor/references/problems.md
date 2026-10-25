@@ -17,6 +17,8 @@ typeahead · proximity-search · ticketmaster · leaderboard · job-scheduler ·
 ad-click-aggregator · ride-hailing · instagram
 L3: payment-system · google-docs · distributed-kv-store · stock-exchange · llm-chat-service ·
 distributed-message-queue · flash-sale
+AI track (`--ai-track`): rag-qa-service · llm-gateway · ai-code-review-bot · ai-agent-platform ·
+llm-eval-platform
 
 ---
 
@@ -268,3 +270,51 @@ Must-haves: pre-warmed static/CDN content; admission control/waiting room; atomi
 Deep dives: oversell prevention under retries; reconciliation between Redis stock and DB.
 Common mistakes: SELECT then UPDATE inventory; no admission control.
 Reference: Hello Interview — Flash Sale
+
+## AI track
+
+### rag-qa-service — Design a document Q&A assistant (RAG) for a company's internal docs
+Level: L2
+Topics: rag-systems, llm-systems, search-systems, security, queues
+Prompt: Employees ask questions in natural language and get answers with citations from 50M internal documents (wikis, PDFs, tickets) that change constantly. 20K questions/minute at peak; answers must respect each user's document permissions; p95 time-to-first-token under 2 s.
+Must-haves: ingestion pipeline (connectors → parse → chunk → embed) driven by change events/queue; vector index plus keyword index (hybrid retrieval) with reranking; permission filtering at retrieval time using ACL metadata on chunks (not after generation); prompt assembly with citations; streaming answers; re-embedding/backfill strategy when the embedding model changes.
+Deep dives: freshness (deletes and ACL changes must take effect fast); chunking strategy; eval loop for answer quality; cost per query.
+Common mistakes: filtering permissions after the LLM has seen restricted text; one giant re-index job instead of incremental updates; no citations, so answers can't be checked; no way to measure retrieval quality.
+Reference: resources.md → rag-systems; Eugene Yan, LLM patterns
+
+### llm-gateway — Design an LLM gateway for a company
+Level: L2
+Topics: llm-gateway, rate-limiting, caching, reliability, observability
+Prompt: Every team calls several LLM providers through one internal gateway. It must enforce per-team token budgets, route to the cheapest model that meets a quality tier, fail over when a provider is down, and log usage for chargeback. 5K requests/s, many of them streaming.
+Must-haves: unified API with streaming passthrough; auth + per-team keys; token-based quotas/rate limits (counted on input + output tokens, reconciled after the response); routing table by model tier; provider health checks + fallback (before first token only, or with clear client semantics); usage events to a queue → billing/analytics store; optional semantic cache with scope rules.
+Deep dives: rate limiting when output tokens aren't known up front; failover mid-stream; cache safety (no cross-tenant hits, no caching of personal data); latency overhead budget.
+Common mistakes: request-count limits only; synchronous usage logging on the hot path; a shared semantic cache across tenants.
+Reference: resources.md → llm-gateway; LiteLLM proxy docs
+
+### ai-code-review-bot — Design an AI code review bot for GitHub pull requests
+Level: L2
+Topics: llm-systems, queues, workflows, rag-systems, rate-limiting
+Prompt: When a PR is opened or updated, the bot posts review comments within 5 minutes. 2,000 orgs, 50K PRs/day, monorepos up to 10 GB. It should understand repo conventions, not just the diff.
+Must-haves: webhook intake → durable queue (ack fast, process async); dedup/coalescing of rapid pushes to the same PR; job workers with per-repo concurrency limits and per-org rate limits for the GitHub API; context building (diff + related files + repo-level index/memory of conventions); LLM calls with retries and budgets; idempotent comment posting (don't double-post on retry); feedback capture (resolved/dismissed comments) for evals.
+Deep dives: building and refreshing a per-repo index cheaply; noise control and comment quality evals; GitHub API rate limits; large diffs that exceed context windows.
+Common mistakes: doing the review inside the webhook request; re-indexing the whole repo per PR; re-posting all comments on every push.
+Reference: resources.md → rag-systems, llm-evals
+
+### ai-agent-platform — Design a platform that runs autonomous coding agents
+Level: L3
+Topics: agent-systems, workflows, security, llm-gateway, observability
+Prompt: Users give an agent a task ("fix this failing test"); it runs for up to 2 hours in an isolated sandbox with a repo checkout, calls tools (shell, file edits, web), and opens a PR. 100K agent runs/day, 10K concurrent.
+Must-haves: run orchestrator with durable state (checkpointed agent loop, resumable after worker crash); sandbox pool (microVMs/containers) with warm pools, resource limits and network egress policy; tool-call gateway enforcing permissions and blast-radius limits (which paths/commands/hosts) with audit log; LLM access through a gateway with per-run budgets; streaming of run events to the UI; artifact/log storage; human approval step for risky actions.
+Deep dives: resuming after a crash mid-tool-call (idempotent tools, checkpoints); sandbox scheduling and cold-start cost; prompt-injection from tool output; cost control for runaway loops.
+Common mistakes: running agent code on shared hosts; keeping the agent loop only in a process's memory; giving tools ambient credentials.
+Reference: resources.md → agent-systems
+
+### llm-eval-platform — Design an LLM evaluation and tracing platform
+Level: L3
+Topics: llm-evals, streaming, batch-processing, observability, sql-vs-nosql
+Prompt: Product teams log every LLM call and agent step (prompts, outputs, tool calls, latency, cost), browse traces, and run eval suites (datasets + scorers, including LLM-as-judge) on every prompt change. 500M spans/day; trace search within seconds; eval runs of 10K examples finish in under 15 minutes.
+Must-haves: SDK/OTel-compatible ingestion → buffer (Kafka) → columnar/trace store with retention tiers; large payloads in object storage with pointers; trace query API (by session, user, tag, score); eval runner as a distributed batch job with concurrency limits against LLM providers; scorer framework (code checks, LLM judges) with versioned datasets and prompts; results comparison between runs; PII redaction and access control.
+Deep dives: storage cost and sampling; judge reliability (calibrate against human labels); joining online traces to offline evals; multi-tenant isolation.
+Common mistakes: storing full prompt/response blobs in the primary DB; running evals serially; no versioning, so results can't be compared.
+Reference: resources.md → llm-evals
+

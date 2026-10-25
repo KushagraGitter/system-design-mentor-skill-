@@ -24,6 +24,7 @@ from pathlib import Path
 
 def clean(s: str) -> str:
     s = re.sub(r"<br\s*/?>", " / ", s or "", flags=re.I)
+    s = re.sub(r"\s*\n\s*", " / ", s.strip())
     s = re.sub(r"<[^>]+>", "", s)
     s = s.replace("&nbsp;", " ").replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
     return re.sub(r"\s+", " ", s).strip()
