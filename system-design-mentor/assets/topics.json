@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "phases": [
+    {"id": "P1", "title": "Foundations"},
+    {"id": "P2", "title": "Core building blocks"},
+    {"id": "P3", "title": "Data storage and modeling"},
+    {"id": "P4", "title": "Distributed systems theory"},
+    {"id": "P5", "title": "Async processing and streaming"},
+    {"id": "P6", "title": "Design patterns for scale"},
+    {"id": "P7", "title": "Reliability, observability and security"},
+    {"id": "P8", "title": "Interview craft"},
+    {"id": "P9", "title": "Modern systems: AI/LLM and real-time"}
+  ],
+  "topics": [
+    {"id": "fundamentals",        "phase": "P1", "title": "What system design is: requirements, NFRs, trade-offs", "prereqs": [], "hours": 1, "track": "core"},
+    {"id": "estimation",          "phase": "P1", "title": "Back-of-the-envelope estimation and numbers to know", "prereqs": ["fundamentals"], "hours": 2, "track": "core"},
+    {"id": "networking",          "phase": "P1", "title": "Networking essentials: DNS, TCP/UDP, HTTP/1.1-2-3, TLS, WebSockets", "prereqs": ["fundamentals"], "hours": 2, "track": "core"},
+    {"id": "api-design",          "phase": "P1", "title": "API design: REST, gRPC, GraphQL, pagination, idempotency, versioning", "prereqs": ["networking"], "hours": 2, "track": "core"},
+
+    {"id": "scaling-basics",      "phase": "P2", "title": "Vertical vs horizontal scaling, statelessness", "prereqs": ["fundamentals"], "hours": 1, "track": "core"},
+    {"id": "load-balancing",      "phase": "P2", "title": "Load balancers (L4/L7), algorithms, health checks, API gateways", "prereqs": ["networking", "scaling-basics"], "hours": 2, "track": "core"},
+    {"id": "caching",             "phase": "P2", "title": "Caching: layers, strategies, eviction, invalidation, stampedes", "prereqs": ["scaling-basics"], "hours": 2, "track": "core"},
+    {"id": "cdn-blob",            "phase": "P2", "title": "CDNs and blob/object storage, presigned URLs, large files", "prereqs": ["caching"], "hours": 2, "track": "core"},
+    {"id": "proxies-gateway",     "phase": "P2", "title": "Reverse proxies, service mesh, rate limiting at the edge", "prereqs": ["load-balancing"], "hours": 1, "track": "depth"},
+
+    {"id": "sql-vs-nosql",        "phase": "P3", "title": "Relational vs NoSQL (KV, document, wide-column, graph) and how to choose", "prereqs": ["fundamentals"], "hours": 2, "track": "core"},
+    {"id": "data-modeling",       "phase": "P3", "title": "Data modeling, schemas, normalization vs denormalization", "prereqs": ["sql-vs-nosql"], "hours": 2, "track": "core"},
+    {"id": "indexing",            "phase": "P3", "title": "Indexes: B-trees, LSM-trees, secondary, geospatial, inverted", "prereqs": ["data-modeling"], "hours": 2, "track": "core"},
+    {"id": "transactions",        "phase": "P3", "title": "Transactions, ACID, isolation levels, locking, MVCC", "prereqs": ["sql-vs-nosql"], "hours": 2, "track": "core"},
+    {"id": "replication",         "phase": "P3", "title": "Replication: leader-follower, multi-leader, leaderless, lag", "prereqs": ["transactions"], "hours": 2, "track": "core"},
+    {"id": "sharding",            "phase": "P3", "title": "Partitioning/sharding, hot keys, rebalancing", "prereqs": ["replication"], "hours": 2, "track": "core"},
+    {"id": "consistent-hashing",  "phase": "P3", "title": "Consistent hashing and virtual nodes", "prereqs": ["sharding"], "hours": 1, "track": "core"},
+    {"id": "search-systems",      "phase": "P3", "title": "Search: inverted indexes, Elasticsearch, ranking basics", "prereqs": ["indexing"], "hours": 2, "track": "depth"},
+
+    {"id": "cap-pacelc",          "phase": "P4", "title": "CAP, PACELC, consistency models (strong, eventual, causal)", "prereqs": ["replication"], "hours": 2, "track": "core"},
+    {"id": "consensus",           "phase": "P4", "title": "Consensus and coordination: Raft/Paxos, leader election, ZooKeeper/etcd", "prereqs": ["cap-pacelc"], "hours": 3, "track": "depth"},
+    {"id": "distributed-txn",     "phase": "P4", "title": "Distributed transactions: 2PC, sagas, outbox, exactly-once myths", "prereqs": ["transactions", "cap-pacelc"], "hours": 2, "track": "core"},
+    {"id": "time-ordering",       "phase": "P4", "title": "Clocks, ordering, logical/vector clocks, unique ID generation", "prereqs": ["cap-pacelc"], "hours": 2, "track": "depth"},
+
+    {"id": "queues",              "phase": "P5", "title": "Message queues and pub/sub: delivery semantics, DLQs, backpressure", "prereqs": ["scaling-basics"], "hours": 2, "track": "core"},
+    {"id": "streaming",           "phase": "P5", "title": "Event streaming: Kafka, partitions, consumer groups, stream processing", "prereqs": ["queues", "sharding"], "hours": 3, "track": "core"},
+    {"id": "batch-processing",    "phase": "P5", "title": "Batch processing, MapReduce/Spark, lambda vs kappa", "prereqs": ["streaming"], "hours": 2, "track": "depth"},
+    {"id": "workflows",           "phase": "P5", "title": "Long-running and multi-step workflows: job schedulers, durable execution", "prereqs": ["queues", "distributed-txn"], "hours": 2, "track": "core"},
+
+    {"id": "scaling-reads",       "phase": "P6", "title": "Pattern: scaling reads (replicas, caches, CQRS, denormalized views)", "prereqs": ["caching", "replication"], "hours": 2, "track": "core"},
+    {"id": "scaling-writes",      "phase": "P6", "title": "Pattern: scaling writes (sharding, batching, write-behind, queues)", "prereqs": ["sharding", "queues"], "hours": 2, "track": "core"},
+    {"id": "contention",          "phase": "P6", "title": "Pattern: contention (locks, OCC, reservations, inventory/booking)", "prereqs": ["transactions"], "hours": 2, "track": "core"},
+    {"id": "realtime",            "phase": "P6", "title": "Pattern: real-time updates (polling, SSE, WebSockets, presence, fan-out)", "prereqs": ["networking", "queues"], "hours": 2, "track": "core"},
+    {"id": "fanout-feeds",        "phase": "P6", "title": "Pattern: fan-out on write vs read, timelines, celebrity problem", "prereqs": ["caching", "queues"], "hours": 2, "track": "core"},
+    {"id": "rate-limiting",       "phase": "P6", "title": "Rate limiting algorithms and distributed limits", "prereqs": ["caching"], "hours": 1, "track": "core"},
+    {"id": "geo-systems",         "phase": "P6", "title": "Geospatial: geohash, quadtrees, S2/H3, proximity search", "prereqs": ["indexing"], "hours": 2, "track": "depth"},
+
+    {"id": "reliability",         "phase": "P7", "title": "Fault tolerance: timeouts, retries+jitter, circuit breakers, bulkheads", "prereqs": ["load-balancing", "queues"], "hours": 2, "track": "core"},
+    {"id": "availability-dr",     "phase": "P7", "title": "Availability math, SLOs/SLAs, multi-AZ/region, disaster recovery", "prereqs": ["replication", "reliability"], "hours": 2, "track": "core"},
+    {"id": "observability",       "phase": "P7", "title": "Observability: metrics, logs, traces, alerting", "prereqs": ["reliability"], "hours": 1, "track": "depth"},
+    {"id": "security",            "phase": "P7", "title": "Security: authN/Z, OAuth/OIDC, encryption, secrets, multi-tenancy", "prereqs": ["api-design"], "hours": 2, "track": "core"},
+    {"id": "deployment",          "phase": "P7", "title": "Deployments, microservices vs monolith, containers, config, migrations", "prereqs": ["reliability"], "hours": 1, "track": "depth"},
+
+    {"id": "interview-framework", "phase": "P8", "title": "The interview framework: requirements -> entities -> API -> HLD -> deep dives", "prereqs": ["estimation", "api-design"], "hours": 1, "track": "core"},
+    {"id": "tradeoff-communication","phase": "P8", "title": "Communicating trade-offs, driving the conversation, leveling signals", "prereqs": ["interview-framework"], "hours": 1, "track": "core"},
+    {"id": "low-level-design",    "phase": "P8", "title": "Low-level / object-oriented design (LLD) basics", "prereqs": ["fundamentals"], "hours": 2, "track": "optional"},
+
+    {"id": "llm-systems",         "phase": "P9", "title": "LLM serving and AI apps: inference, batching, KV cache, RAG, vector DBs, evals", "prereqs": ["caching", "queues", "indexing"], "hours": 3, "track": "depth"},
+    {"id": "collab-editing",      "phase": "P9", "title": "Collaborative editing: OT vs CRDTs, sync, offline-first", "prereqs": ["realtime", "time-ordering"], "hours": 2, "track": "depth"}
+  ]
+}
